@@ -1,0 +1,83 @@
+{% extends "base_site.html" %}
+{% load myfilters %}
+
+{% block title %} Pracownicy {% endblock title %}
+
+{% block stylesheets %}
+  {{ block.super }}
+  <link href="/static/vendors/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet">
+  <link href="/static/vendors/datatables.net-buttons-bs/css/buttons.bootstrap.min.css" rel="stylesheet">
+  <link href="/static/vendors/datatables.net-fixedheader-bs/css/fixedHeader.bootstrap.min.css" rel="stylesheet">
+  <link href="/static/vendors/datatables.net-responsive-bs/css/responsive.bootstrap.min.css" rel="stylesheet">
+  <link href="/static/vendors/datatables.net-scroller-bs/css/scroller.bootstrap.min.css" rel="stylesheet">
+{% endblock stylesheets %}
+
+{% block content %}
+  <div class="right_col" role="main">
+    <div class="">
+      <div class="page-title">
+        <div class="title_left">
+          <h3>Klienci</h3>
+        </div>
+      </div>
+
+      <div class="clearfix"></div>
+
+      <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="x_panel"><br>
+                <a href="{% url 'agreements:create' %}" class="btn btn-primary" role="button"><i class="fa fa-plus-square-o" aria-hidden="true"></i> Dodaj umowę</a><br><br>
+ 
+              <div class="x_content">
+                <table id="datatable-responsive" class="table table-striped table-bordered dt-responsive nowrap" cellspacing="0" width="100%">
+                  <thead>
+                    <tr>
+                      
+                      <th>ID pracownika</th>
+                      <th>Imię</th>
+                      <th>Nazwisko</th>
+                      <th>Kwota</th>
+                      <th>Ważna od</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                    
+                  <tbody>
+                    {% for user in object_list %}
+                    <tr>
+                      <td>{{user.employee.employee_nr}}</td>
+                      <td>{{user.employee.name}}</td>
+                      <td>{{user.employee.surname}}</td>
+                      <td>{{user.email}}</td>
+                      <td>{{user.employee.role|role}}</td>
+                      <td ><a style="font-size: 0.8em;" href="{{ user.employee.get_absolute_url }}" class="btn btn-info" role="button"><i class="fa fa-search" aria-hidden="true"></i></a></td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+      
+              </div>
+            </div>
+          </div>
+      </div>
+    </div>
+  </div>
+{% endblock content %}
+
+{% block javascripts %}
+  {{ block.super }}
+  <!-- Datatables -->
+  <script src="/static/vendors/datatables.net/js/jquery.dataTables.min.js"></script>
+  <script src="/static/vendors/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
+  <script src="/static/vendors/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+  <script src="/static/vendors/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+  <script src="/static/vendors/datatables.net-buttons/js/buttons.flash.min.js"></script>
+  <script src="/static/vendors/datatables.net-buttons/js/buttons.html5.min.js"></script>
+  <script src="/static/vendors/datatables.net-buttons/js/buttons.print.min.js"></script>
+  <script src="/static/vendors/datatables.net-fixedheader/js/dataTables.fixedHeader.min.js"></script>
+  <script src="/static/vendors/datatables.net-keytable/js/dataTables.keyTable.min.js"></script>
+  <script src="/static/vendors/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
+  <script src="/static/vendors/datatables.net-responsive-bs/js/responsive.bootstrap.js"></script>
+  <script src="/static/vendors/datatables.net-scroller/js/dataTables.scroller.min.js"></script>
+
+{% endblock javascripts %}

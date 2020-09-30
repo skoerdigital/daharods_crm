@@ -1,0 +1,172 @@
+{% extends "base_site.html" %} {% block title %} {{title}} {% endblock title %} 
+
+{% block stylesheets %}
+  {{ block.super }}
+    <link href="/static/vendors/pnotify/dist/pnotify.css" rel="stylesheet">
+    <link href="/static/vendors/pnotify/dist/pnotify.buttons.css" rel="stylesheet">
+    <link href="/static/vendors/pnotify/dist/pnotify.nonblock.css" rel="stylesheet">
+{% endblock stylesheets %} 
+
+{% block content %}
+{% load myfilters %}
+
+<div class="right_col" role="main">
+    <div class="">
+        <div class="page-title">
+            <div class="title_left">
+                <h3>{{title}}</h3>
+            </div>
+
+            <div class="title_right">
+                <div class="col-md-5 col-sm-5 col-xs-12 form-group pull-right top_search">
+                </div>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+        
+        <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="x_panel form_wizard wizard_horizontal">
+                    <div class="x_content">                        
+                        <form action="." method="post" id="demo-form2" class="form-horizontal form-label-left">{% csrf_token %}
+
+                            <div class="form-group">
+                                {{ forms.user_form.username.errors }}
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ forms.user_form.username.id_for_label }}">Nazwa użytkownika
+                                    <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    {{forms.user_form.username|add_attributes:'class: form-control col-md-7 col-xs-12, required:required'}}
+                                    {{forms.user_form.username.id}}
+                                    <p>{{forms.user_form.username.help_text}}</p>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                {{ forms.user_form.email.errors }}
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ forms.user_form.email.id_for_label }}">E-mail
+                                    <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    {{forms.user_form.email|add_attributes:'class: form-control col-md-7 col-xs-12, required:required'}}
+                                    {{forms.user_form.email.id}}
+                                    <p>{{forms.user_form.email.help_text}}</p>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                {{ forms.user_form.password1.errors }}
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ forms.user_form.password1.id_for_label }}">Hasło
+                                    <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    {{forms.user_form.password1|add_attributes:'class: form-control col-md-7 col-xs-12, required:required'}}
+                                    {{forms.user_form.password1.id}}
+                                    <p>{{forms.user_form.password1.help_text|safe}}</p>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                {{ forms.user_form.password2.errors }}
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ forms.user_form.password2.id_for_label }}">Powtórz hasło
+                                    <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    {{forms.user_form.password2|add_attributes:'class: form-control col-md-7 col-xs-12, required:required'}}
+                                    {{forms.user_form.password2.id}}
+                                    <p>{{forms.user_form.password2.help_text|safe}}</p>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                {{ forms.employee_form.name.errors }}
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ forms.employee_form.name.id_for_label }}">Imię
+                                    <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    {{forms.employee_form.name|add_attributes:'class: form-control col-md-7 col-xs-12, required:required'}}
+                                    {{forms.employee_form.name.id}}
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                {{ forms.employee_form.surname.errors }}
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ forms.employee_form.surname.id_for_label }}">{{forms.employee_form.surname.label}}
+                                    <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    {{forms.employee_form.surname|add_attributes:'class: form-control col-md-7 col-xs-12, required:required'}}
+                                    {{forms.employee_form.surname.id}}
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">{{forms.employee_form.employee_state.label}} <span class="required">*</span></label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <div id="employee_state" class="btn-group" data-toggle="buttons">
+                                        {% for choice in forms.employee_form.employee_state.field.choices %}
+                                        <label class="btn btn-default {% if forms.employee_form.employee_state.value == choice.0 %} active {% endif %}" data-toggle-class="btn-primary" data-toggle-passive-class="btn-default" for='{{ forms.employee_form.employee_state.auto_id }}_{{ forloop.counter0 }}'>
+                                            <input name='{{ forms.employee_form.employee_state.name }}' 
+                                            id='{{ forms.employee_form.employee_state.auto_id }}_{{ forloop.counter0 }}' type='radio' value='{{ choice.0 }}'
+                                            {% if forms.employee_form.employee_state.value == choice.0 %} checked='checked' {% endif %} required
+                                            /> {{ choice.1 }} 
+                                        </label>
+                                        {% endfor %}
+                                        <br><br>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">{{forms.employee_form.role.label}} <span class="required">*</span></label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <div id="employee_state" class="btn-group" data-toggle="buttons">
+                                        {% for choice in forms.employee_form.role.field.choices %}
+                                        <label class="btn btn-default {% if forms.employee_form.role.value == choice.0 %} active {% endif %}" data-toggle-class="btn-primary" data-toggle-passive-class="btn-default" for='{{ forms.employee_form.role.auto_id }}_{{ forloop.counter0 }}'>
+                                            <input name='{{ forms.employee_form.role.name }}' 
+                                            id='{{ forms.employee_form.role.auto_id }}_{{ forloop.counter0 }}' type='radio' value='{{ choice.0 }}'
+                                            {% if forms.employee_form.role.value == choice.0 %} checked='checked' {% endif %} required
+                                            /> {{ choice.1 }}
+                                        </label>
+                                        {% endfor %}
+                                        <br><br>
+                                    </div>
+                                </div>
+                            </div>
+                            
+    
+                            <div class="form-group text-center">
+                                <button type="reset" class="btn btn-primary">Reset</button>
+                                <button type="submit" class="btn btn-success">Zapisz</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %} {% block javascripts %} 
+{{ block.super}}
+<script src="/static/vendors/pnotify/dist/pnotify.js"></script>
+<script src="/static/vendors/pnotify/dist/pnotify.nonblock.js"></script>
+
+<script>(function () {
+	$(document).ready(function() {
+
+        if($('.errorlist').length){
+            $('.errorlist').hide();
+            $('.errorlist').each(function(){
+                console.log(this);
+                new PNotify({
+                    title: "Ostrzeżenie",
+                    text: $(this).find('li').text(),
+                    type: 'danger',
+                    styling: 'bootstrap3'
+                });
+            })
+        }
+	});
+})(jQuery);
+</script>
+{% endblock javascripts %}

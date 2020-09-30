@@ -1,0 +1,2 @@
+def testmethod():
+    print('test')

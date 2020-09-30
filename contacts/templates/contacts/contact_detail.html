@@ -1,0 +1,63 @@
+
+{% extends "base_site.html" %}
+{% load myfilters %}
+
+{% block title %} Profile {% endblock title %}
+
+{% block stylesheets %}
+  {{ block.super }}
+{% endblock stylesheets %}
+
+{% block content %}
+  <div class="right_col" role="main">
+    <div class="">
+      <div class="page-title">
+      </div>
+
+      <div class="clearfix"></div>
+
+      <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+          <div class="x_panel">
+            <div class="x_content">
+              <div class="col-md-6 col-sm-6 col-xs-12 profile_left">
+
+                <h1>{{object.name}} {{object.surname}} </h1>
+                
+                <ul class="list-unstyled user_data">
+                <br>
+                <h4>Dane kontaktowe</h4>
+                <ul class="list-unstyled user_data">
+                    <li>
+                       <a href="mailto:{{object.email}}"><i class="fa fa-envelope-o"></i> {{object.email}}</a>
+                    </li>
+                    <li>
+                        <a href="tel:{{object.tel}}"><i class="fa fa-phone"></i> {{object.tel}}</a>
+                    </li>
+
+                </ul>
+                <br>
+
+                <p>Uwtorzony:
+                    <small style="color:#73879C; padding:3px 6px; background: none; border: 1px solid #73879C; margin: 5px auto">{{object.timestamp|timesince}} temu</small></p>
+                
+                <p>Ostatnio edytowany:
+                  <small style="color:#73879C; padding:3px 6px; background: none; border: 1px solid #73879C;  ">{{object.updated|timesince}} temu</small>
+                </p><br>
+
+                <a class="btn btn-success" href=""><i class="fa fa-edit m-right-xs"></i> Edytuj</a>
+                <a class="btn btn-default" href="{% url 'contacts:list' %}"><i class="fa fa-list m-right-xs"></i> Lista kontaktów</a>
+                <br />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock content %}
+
+{% block javascripts %}
+  {{ block.super }}
+
+{% endblock javascripts %} 

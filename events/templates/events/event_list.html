@@ -1,0 +1,661 @@
+{% extends "base_site.html" %}
+
+{% block title %} Form Advanced {% endblock title %}
+
+{% block stylesheets %}
+  {{ block.super }}
+  <!-- FullCalendar -->
+  <link href="/static/vendors/fullcalendar/dist/fullcalendar.min.css" rel="stylesheet">
+  <link href="/static/vendors/fullcalendar/dist/fullcalendar.print.css" rel="stylesheet" media="print">
+  <link href="/static/vendors/pnotify/dist/pnotify.css" rel="stylesheet">
+  <link href="/static/vendors/pnotify/dist/pnotify.buttons.css" rel="stylesheet">
+  <link href="/static/vendors/pnotify/dist/pnotify.nonblock.css" rel="stylesheet">
+{% endblock stylesheets %}
+
+{% block content %}
+  <div class="right_col" role="main">
+    <div class="">
+      <div class="page-title">
+        <div class="title_left">
+          <h3>Kalendarz</h3>
+        </div>
+
+        
+      </div>
+
+      <div class="clearfix"></div>
+
+      <div class="row">
+        <div class="col-md-12">
+          <div class="x_panel">
+            <div class="x_title">
+              <h2>Spotkania</h2>
+              <ul class="nav navbar-right panel_toolbox">
+                <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                </li>
+                
+                <li><a class="close-link"><i class="fa fa-close"></i></a>
+                </li>
+              </ul>
+              <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+
+              <div id='calendar'></div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="CalenderModalDrop" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title" id="myModalLabel">Zmiana wydarzenia</h4>
+            </div>
+            <div class="modal-body">
+                <div id="testmodal" style="padding: 5px 20px;">
+                    <p>Czy na pewno chcesz zmienić wpis w kalendarzu?</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default dismiss" data-dismiss="modal">Anuluj</button>
+                <button type="button" class="btn btn-primary confirm">Zapisz</button>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="CalendarAddContact" class="modal fade" tabindex="-1" style="z-index: 100000000" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title" id="myModalLabel">Dodaj kontakt</h4>
+            </div>
+            <div class="modal-body">
+                <div id="testmodal" style="padding: 5px 20px;">
+                    <form id="antoform" class="form-horizontal calender" role="form">{% csrf_token %}
+                        
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Imię</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" id="contact-name" name="contact-name">
+                            </div>
+                        </div>
+                        
+            
+                        <div class="form-group">
+                          <label class="col-sm-3 control-label">Nazwisko</label>
+                          <div class="col-sm-9">
+                            <input type="text" class="form-control" id="contact-surname" name="contact-surname">
+                          </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">E-mail</label>
+                            <div class="col-sm-9">
+                              <input type="email" class="form-control" id="contact-email" name="contact-email">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Numer telefonu</label>
+                            <div class="col-sm-9">
+                              <input type="tel" class="form-control" id="contact-tel" name="contact-tel">
+                            </div>
+                        </div>
+
+                      </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default dismiss" data-dismiss="modal">Anuluj</button>
+                <button type="button" class="btn btn-primary confirm" id="submit-contact">Zapisz</button>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- calendar modal -->
+    <div id="CalenderModalNew" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h4 class="modal-title" id="myModalLabel">Dodaj nowe wydarzenie</h4>
+          </div>
+          <div class="modal-body">
+            <div id="testmodal" style="padding: 5px 20px;">
+              <form id="antoform" class="form-horizontal calender" role="form">{% csrf_token %}
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Nazwa</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" id="title" name="title">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Kontakt</label>
+                    <div class="col-sm-9"> 
+                        <select class="form-control" id="contact" name="contact">
+                            <option value="" selected>------------</option>
+                            {% for contact in contacts %}
+                            <option value="{{contact.id}}">{{contact.name}} {{contact.surname}}</option>
+                            {% empty %}
+                            Brak dostępnych kontaktów do umówienia
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-md-3 col-sm-3 col-xs-12">Nie ma kontaktu na liście?
+                    </label>
+                    <div class="col-md-4 col-sm-4 col-xs-6">
+                        <a class="btn btn-dark form-control col-md-3 col-xs-3" id="add-contact"><i class="fa fa-plus-square-o" aria-hidden="true"></i> Dodaj kontakt</a>
+                        <br><br>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Wybierz kolor</label>
+                    <div class="col-sm-9">
+                        <label class="default">
+                            <input type="radio" name="color" value="#337ab7" checked>
+                            <div class="layer"></div>
+                            <div class="button-color"><span></span></div>
+                        </label>
+                        <label class="orange">
+                            <input type="radio" name="color" value="#FF5722" >
+                            <div class="layer"></div>
+                            <div class="button-color"><span></span></div>
+                        </label>
+                            
+                        <label class="amber">
+                            <input type="radio" name="color" value="#FFC107">
+                            <div class="layer"></div>
+                            <div class="button-color"><span></span></div>
+                        </label>
+                            
+                        <label class="lime">
+                            <input type="radio" name="color" value="#8BC34A">
+                            <div class="layer"></div>
+                            <div class="button-color"><span></span></div>
+                        </label>
+                            
+                        <label class="teal">
+                            <input type="radio" name="color" value="#009688">
+                            <div class="layer"></div>
+                            <div class="button-color"><span></span></div>
+                        </label>
+                            
+                        <label class="blue">
+                            <input type="radio" name="color" value="#2196F3">
+                            <div class="layer"></div>
+                            <div class="button-color"><span></span></div>
+                        </label>
+                            
+                        <label class="indigo">
+                            <input type="radio" name="color" value="#3F51B5">
+                            <div class="layer"></div>
+                            <div class="button-color"><span></span></div>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                  <label class="col-sm-3 control-label">Opis</label>
+                  <div class="col-sm-9">
+                    <textarea class="form-control" style="height:55px;" id="descr" name="descr"></textarea>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default antoclose" data-dismiss="modal">Anuluj</button>
+            <button type="button" class="btn btn-primary antosubmit">Zapisz</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="CalenderModalEdit" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h4 class="modal-title" id="myModalLabel2">Edytuj wydarzenie</h4>
+          </div>
+          <div class="modal-body">
+
+            <div id="testmodal2" style="padding: 5px 20px;">
+              <form id="antoform2" class="form-horizontal calender" role="form">
+                <div class="form-group">
+                  <label class="col-sm-3 control-label">Nazwa</label>
+                  <div class="col-sm-9">
+                    <input type="text" class="form-control" id="title2" name="title2">
+                  </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Wybierz kolor</label>
+                    <div class="col-sm-9">
+                        <label class="default">
+                            <input type="radio" name="color2" value="#337ab7" checked>
+                            <div class="layer"></div>
+                            <div class="button-color"><span></span></div>
+                        </label>
+                        <label class="orange">
+                            <input type="radio" name="color2" value="#FF5722">
+                            <div class="layer"></div>
+                            <div class="button-color"><span></span></div>
+                        </label>
+                            
+                        <label class="amber">
+                            <input type="radio" name="color2" value="#FFC107">
+                            <div class="layer"></div>
+                            <div class="button-color"><span></span></div>
+                        </label>
+                            
+                        <label class="lime">
+                            <input type="radio" name="color2" value="#8BC34A">
+                            <div class="layer"></div>
+                            <div class="button-color"><span></span></div>
+                        </label>
+                            
+                        <label class="teal">
+                            <input type="radio" name="color2" value="#009688">
+                            <div class="layer"></div>
+                            <div class="button-color"><span></span></div>
+                        </label>
+                            
+                        <label class="blue">
+                            <input type="radio" name="color2" value="#2196F3">
+                            <div class="layer"></div>
+                            <div class="button-color"><span></span></div>
+                        </label>
+                            
+                        <label class="indigo">
+                            <input type="radio" name="color2" value="#3F51B5">
+                            <div class="layer"></div>
+                            <div class="button-color"><span></span></div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Opis</label>
+                    <div class="col-sm-9">
+                        <textarea class="form-control" style="height:55px;" id="descr2" name="descr"></textarea>
+                    </div>
+                </div>
+              </form>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default antoclose2" data-dismiss="modal">Anuluj</button>
+            {% if user.is_authenticated and user.employee.role == 'A' %}
+            <button type="button" class="btn btn-danger remove">Usuń wydarzenie</button>
+            {% endif %}
+            <button type="button" class="btn btn-primary antosubmit2">Zapisz</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="fc_create" data-toggle="modal" data-target="#CalenderModalNew"></div>
+    <div id="fc_edit" data-toggle="modal" data-target="#CalenderModalEdit"></div>
+    <div id="fc_drop" data-toggle="modal" data-target="#CalenderModalDrop"></div>
+    <!-- /calendar modal -->
+  </div>
+{% endblock content %}
+
+{% block javascripts %}
+  {{ block.super }}
+  <!-- FullCalendar -->
+  <script src="/static/vendors/moment/min/moment.min.js"></script>
+  <script src="/static/vendors/fullcalendar/dist/fullcalendar.min.js"></script>
+  <script src="/static/vendors/fullcalendar/dist/lang/pl.js"></script>
+  <script src="/static/vendors/pnotify/dist/pnotify.js"></script>
+  <script src="/static/vendors/pnotify/dist/pnotify.nonblock.js"></script>
+  <script>
+    $(function() {
+
+        $('#add-contact').click(function(){
+            $('#CalendarAddContact').modal('show');
+        })
+        
+        $('#submit-contact').click(function(event){
+            var name = $('#contact-name').val(),
+                surname = $('#contact-surname').val(),
+                email = $('#contact-email').val(),
+                tel = $('#contact-tel').val();
+
+                if(name != "" && surname !="" && email != "" && tel!=""){
+                    $.ajax({
+                        method: "POST",
+                        url: "/contacts/create/",
+                        data: {name: name, surname: surname, email: email, tel: tel, csrfmiddlewaretoken: '{{ csrf_token }}'},
+                        success: function(data) {
+                            location.reload()
+                        }
+                    })
+                } else {
+                    new PNotify({
+                        title: "Ostrzeżenie",
+                        text: "Pola formularza nie mogą pozostać puste",
+                        type: 'danger',
+                        styling: 'bootstrap3'
+                    });
+                }
+        });
+
+        if (typeof($.fn.fullCalendar) === 'undefined') {
+            return;
+        }
+    
+        var date = new Date(),
+            d = date.getDate(),
+            m = date.getMonth(),
+            y = date.getFullYear(),
+            started,
+            categoryClass;
+    
+        var calendar = $('#calendar').fullCalendar({
+            header: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'month,agendaWeek,agendaDay,listMonth'
+            },
+            selectable: true,
+            selectHelper: true,
+            select: function(start, end, allDay) {
+                $('#fc_create').click();
+    
+                started = start;
+                ended = end;
+    
+                $(".antosubmit").on("click", function() {
+                    var title = $("#title").val(),
+                        color = $("input[type='radio']:checked").val(),
+                        contact = $("#contact option:selected"),
+                        descr = $("#descr").val();
+            
+                    if (end) {
+                        ended = end;
+                    }
+
+                    categoryClass = $("#event_type").val();
+
+                    console.log($(contact).val());
+
+                    if (title && $(contact).val()!="") {
+                        $.ajax({
+                            method: "POST",
+                            url: "/events/create/",
+                            data: {
+                                owner: '{{ user.id }}', 
+                                title: title, 
+                                start: started.utc(0).format('YYYY-MM-DD HH:mm:ss'),
+                                end: ended.utc(0).format('YYYY-MM-DD HH:mm:ss'),
+                                color: color,
+                                is_allday: started.hasTime() ? true : false,
+                                csrfmiddlewaretoken: '{{ csrf_token }}'
+                            },
+                            success: function(data) {
+                                $.ajax({
+                                    method: "POST",
+                                    url: "/contacts/"+$(contact).val()+"/update/",
+                                    data: {
+                                        is_appointed: true, csrfmiddlewaretoken: '{{ csrf_token }}'}
+                                });
+                                calendar.fullCalendar('renderEvent', {
+                                        id: data.event_id,
+                                        title: title + " " + $(contact).text(),
+                                        start: started,
+                                        end: ended,
+                                        allDay: allDay,
+                                        backgroundColor: color,
+                                        description: descr
+                                    },
+                                    true
+                                );
+                                new PNotify({
+                                    title: "Powodzenie",
+                                    text: "Dodano element do kalendarza",
+                                    type: 'success',
+                                    styling: 'bootstrap3'
+                                });
+                            }, 
+                            error: function(){
+                                new PNotify({
+                                    title: "Błąd",
+                                    text: "Wystąpił błąd, spróbuj ponownie lub skontaktuj się z administratorem",
+                                    type: 'error',
+                                    styling: 'bootstrap3'
+                                });
+                            }
+                        })
+                    } else {
+                        new PNotify({
+                            title: "Ostrzeżenie",
+                            text: "Pole tytułu i klienta nie może pozostać puste",
+                            type: 'danger',
+                            styling: 'bootstrap3'
+                        });
+                    }
+                        
+                    $('#title').val('');
+                    
+                    calendar.fullCalendar('unselect');
+    
+                    $('.antoclose').click();
+                    $('.antosubmit').unbind()
+    
+                    return false;
+                });
+            },
+            
+            eventClick: function(calEvent, jsEvent, view) {
+                $('#fc_edit').click();
+                $('#title2').val(calEvent.title);
+                $("#descr2").val(calEvent.description);
+                $('input[name="color2"][value="'+calEvent.backgroundColor+'"]').attr('checked', 'checked');
+                
+                categoryClass = $("#event_type").val();
+    
+                $(".antosubmit2").on("click", function() {
+                    if( $("#title2").val() && $("#client").val()!=""){
+                        calEvent.title = $("#title2").val();
+                        calEvent.color = $("input[name='color2']:checked").val();
+                        
+                        $.ajax({
+                            method: "POST",
+                            url: "/events/"+calEvent.id+"/edit/",
+                            data: {
+                                title: calEvent.title, 
+                                color: calEvent.color,
+                                start: calEvent.start.format('YYYY-MM-DD HH:mm:ss'),
+                                end: calEvent.end.format('YYYY-MM-DD HH:mm:ss'),
+                                allDay: calEvent.start.hasTime() ? true : false,
+                                description: calEvent.description,
+                                csrfmiddlewaretoken: '{{ csrf_token }}'
+                            },
+                            success: function(data) {
+                                console.log(data)
+                                calendar.fullCalendar('updateEvent', calEvent);
+                                new PNotify({
+                                    title: "Powodzenie",
+                                    text: "Zmieniono pozycję w kalendarzu",
+                                    type: 'success',
+                                    styling: 'bootstrap3'
+                                });
+                            }, 
+                            error: function(){
+                                new PNotify({
+                                    title: "Błąd",
+                                    text: "Wystąpił błąd, spróbuj ponownie lub skontaktuj się z administratorem",
+                                    type: 'error',
+                                    styling: 'bootstrap3'
+                                });
+                            }
+                        })
+                    }
+                    $('.antoclose2').click();
+                    $('.antosubmit2').unbind();
+                });
+
+                $(".remove").on("click", function(){
+                    $.ajax({
+                        method: "POST",
+                        url: "/events/"+calEvent.id+"/delete/",
+                        data: {
+                            csrfmiddlewaretoken: '{{ csrf_token }}'
+                        },
+                        success: function(data) {
+                            calendar.fullCalendar('removeEvents', calEvent.id)
+                            new PNotify({
+                                title: "Powodzenie",
+                                text: "Usunięto wydarzenie",
+                                type: 'success',
+                                styling: 'bootstrap3'
+                            });
+                            $(".remove").unbind();
+                        }, 
+                        error: function(){
+                            new PNotify({
+                                title: "Błąd",
+                                text: "Wystąpił błąd, spróbuj ponownie lub skontaktuj się z administratorem",
+                                type: 'error',
+                                styling: 'bootstrap3'
+                            });
+                        }
+                    })
+                    $('#CalenderModalEdit').modal('hide');
+                })
+                
+    
+                calendar.fullCalendar('unselect');
+            },
+            editable: true,
+            eventResize: function(event, delta, revertFunc) {
+
+                $('#fc_drop').click();
+
+                var updated = false;
+                
+                $('.confirm').click(function(){
+                    $.ajax({
+                        method: "POST",
+                        url: "/events/"+event.id+"/edit/",
+                        data: {
+                            title: event.title, 
+                            color: event.color,
+                            start: event.start.utc(0).format('YYYY-MM-DD HH:mm:ss'),
+                            end: event.end.utc(0).format('YYYY-MM-DD HH:mm:ss'),
+                            allDay: event.start.hasTime() ? true : false,
+                            csrfmiddlewaretoken: '{{ csrf_token }}'
+                        },
+                        success: function(data) {
+                            updated = true;
+                            new PNotify({
+                                title: "Powodzenie",
+                                text: "Zmieniono pozycję w kalendarzu",
+                                type: 'success',
+                                styling: 'bootstrap3'
+                            });
+                        }, 
+                        error: function(){
+                            revertFunc();
+                            new PNotify({
+                                title: "Błąd",
+                                text: "Wystąpił błąd, spróbuj ponownie lub skontaktuj się z administratorem",
+                                type: 'error',
+                                styling: 'bootstrap3'
+                            });
+                        }
+                    })
+                    $('#CalenderModalDrop').modal('hide');
+                    $('.confirm').unbind()
+                })
+
+                $('#CalenderModalDrop').on('hidden.bs.modal', function () {
+                    if(!updated){
+                        revertFunc(); 
+                    }
+                })
+
+            },
+            eventDrop: function(event, delta, revertFunc) {
+
+                $('#fc_drop').click();
+
+                var updated = false;
+                
+                $('.confirm').click(function(){
+                    $.ajax({
+                        method: "POST",
+                        url: "/events/"+event.id+"/edit/",
+                        data: {
+                            title: event.title, 
+                            color: event.color,
+                            start: event.start.utc(0).format('YYYY-MM-DD HH:mm:ss'),
+                            end: event.end.utc(0).format('YYYY-MM-DD HH:mm:ss'),
+                            allDay: event.start.hasTime() ? true : false,
+                            csrfmiddlewaretoken: '{{ csrf_token }}'
+                        },
+                        success: function(data) {
+                            updated = true;
+                            new PNotify({
+                                title: "Powodzenie",
+                                text: "Zmieniono pozycję w kalendarzu",
+                                type: 'success',
+                                styling: 'bootstrap3'
+                            });
+                        }, 
+                        error: function(){
+                            revertFunc();
+                            new PNotify({
+                                title: "Błąd",
+                                text: "Wystąpił błąd, spróbuj ponownie lub skontaktuj się z administratorem",
+                                type: 'error',
+                                styling: 'bootstrap3'
+                            });
+                        }
+                    })
+                    $('#CalenderModalDrop').modal('hide');
+                    $('.confirm').unbind()
+                })
+
+                $('#CalenderModalDrop').on('hidden.bs.modal', function () {
+                    if(!updated){
+                        revertFunc(); 
+                    }
+                })
+            },
+            events: [
+            {% for event in object_list %}
+            {
+                id: '{{event.id}}',
+                title: '{{event.title}}',
+                start: new Date('{{event.start|date:'Y-m-d H:i'}}'),
+                end: new Date('{{event.end|date:'Y-m-d H:i'}}'),
+                backgroundColor: '{{event.color}}',
+                is_allday: {{event.is_allday|lower}},
+                description: '{{event.description}}',
+                owner: '{{event.owner.employee.name}} {{event.owner.employee.surname}}'
+            },
+            {% endfor %}
+            ],
+        });
+        
+    
+    });
+  </script>
+{% endblock javascripts %}

@@ -1,0 +1,212 @@
+{% extends "base_site.html" %} 
+
+{% load myfilters %} 
+
+{% block title %} Table Dynamic {% endblock title %} 
+{% block stylesheets %} 
+{{ block.super }}
+<link href="/static/vendors/pnotify/dist/pnotify.css" rel="stylesheet">
+<link href="/static/vendors/pnotify/dist/pnotify.buttons.css" rel="stylesheet">
+<link href="/static/vendors/pnotify/dist/pnotify.nonblock.css" rel="stylesheet"> 
+
+{% endblock stylesheets %} 
+
+{% block content %}
+<div class="modal fade" id="send-message-modal" tabindex="-1" role="dialog" aria-labelledby="send-message-modal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title pull-left" id="exampleModalLabel">Wyślij wiadomość</h2>
+                <button type="button" class="close pull-right" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="send-message-form" class="form-horizontal form-label-left">{% csrf_token %}
+                    <div class="form-group center-block">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12">Treść
+                        </label>
+                        <div class="col-md-6 col-sm-6 col-xs-12">
+                            <textarea class="form-control col-md-7 col-xs-12" placeholder="Maksymalnie 150 znaków" style="resize: none" id="message">        
+                            </textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="add-button">Zatwierdź</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="right_col" role="main">
+    <div class="">
+        <div class="page-title">
+            <div class="title_left">
+                <h3>Powiadomienia</h3>
+            </div>
+        </div>
+
+        <div class="clearfix"></div>
+
+        <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="x_panel">
+                    <div class="x_content">
+                        {% if user.is_authenticated and user.employee.role == 'A' %}
+                        <h2>Chcesz wysłać wiadomość do pracowników?</h2>
+                        <button class="btn btn-success" data-toggle="modal" data-target="#send-message-modal"><i class="fa fa-envelope-o"></i> Wyślij wiadomość</button>
+                        <div class="ln_solid"></div>
+                        {% endif %}
+                        <div class="dashboard-widget-content">
+                            <ul class="list-unstyled timeline widget">
+                                {% for notification in notifications|dictsortreversed:"timestamp"|slice:":5" %}
+                                <li>
+                                    <div class="block">
+                                        <div class="block_content">
+                                            <h2 class="title">
+                                                <a href="{{notification.content_object.get_absolute_url}}">{{notification.content}}
+                                                    <b></b>
+                                                </a>
+                                                <br>
+                                                <br> {% if notification.category == 'R' %}
+                                                <span>
+                                                    {% if notification.content_object.state == 'P' %}
+                                                    <button id="{{notification.object_id}}"
+                                                        class="btn btn-success commision-request-btn accept">Zatwierdź</button>
+                                                    <button id="{{notification.object_id}}" class="btn btn-danger commision-request-btn deny">Odrzuć</button>
+                                                    {% endif %}
+                                                    <a href="{% url 'agreements:detail' notification.object_id|get_agreement_nr %}" class="btn btn-default">Zobacz umowę</a>
+                                                </span>
+                                                {% elif notification.category == 'D' %}
+                                                <span>
+                                                    <a href="{% url 'agreements:detail' notification.object_id|get_agreement_nr %}" class="btn btn-default">Zobacz umowę</a>
+                                                </span>
+                                                {% endif %}
+                                            </h2>
+                                            <div class="byline">
+                                                <span>{{ notification.timestamp|timesince }} temu</span>
+                                                <a></a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                                {% empty %}
+                                <li>
+                                    <p class="text-center">Brak nowych powiadomień</p>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %} 
+
+{% block javascripts %} 
+
+{{ block.super }}
+<script src="/static/vendors/pnotify/dist/pnotify.js"></script>
+<script src="/static/vendors/pnotify/dist/pnotify.js"></script>
+<script src="/static/vendors/pnotify/dist/pnotify.nonblock.js"></script>
+
+<script>
+    $(function () {
+    
+            
+        $('#add-button').click(function(e){
+
+            var message = $('#message').val();
+            
+            
+            if(message){
+                $('.selectpicker').find("option:selected").each(function(){
+                    selected.push($(this).val());
+                });
+                $.ajax({
+                    method: "POST",
+                    url: "/notifications/send/",
+                    data: { message: message, csrfmiddlewaretoken: '{{ csrf_token }}' },
+                    dataType: "json",
+                    success: function (data) {
+                        new PNotify({
+                            title: data.status,
+                            text: data.msg,
+                            type: 'success',
+                            styling: 'bootstrap3'
+                        });
+                    },
+                    error: function (data) {
+                        new PNotify({
+                            title: data.status,
+                            text: data.msg,
+                            type: 'danger',
+                            styling: 'bootstrap3'
+                        });
+                    }
+                })
+
+            }
+        })
+
+        $('.commision-request-btn').click(function (e) {
+            id = e.target.id;
+            if ($(e.target).hasClass('accept')) {
+                $.ajax({
+                    method: "POST",
+                    url: "/commisions/" + id + "/accept/",
+                    data: { csrfmiddlewaretoken: '{{ csrf_token }}' },
+                    success: function (data) {
+                        new PNotify({
+                            title: data.status,
+                            text: data.msg,
+                            type: 'success',
+                            styling: 'bootstrap3'
+                        });
+                        $('.commision-request-btn').filter('#' + id).each(function () {
+                            $(this).prop("disabled", true)
+                        })
+                    },
+                    error: function (data) {
+                        new PNotify({
+                            title: data.status,
+                            text: data.msg,
+                            type: 'danger',
+                            styling: 'bootstrap3'
+                        });
+                    }
+                })
+            }
+            if ($(e.target).hasClass('deny')) {
+                $.ajax({
+                    method: "POST",
+                    url: "/commisions/" + id + "/deny/",
+                    data: { csrfmiddlewaretoken: '{{ csrf_token }}' },
+                    success: function (data) {
+                        new PNotify({
+                            title: data.status,
+                            text: data.msg,
+                            type: 'success',
+                            styling: 'bootstrap3'
+                        });
+                        $('.commision-request-btn').filter('#' + id).each(function () {
+                            $(this).prop("disabled", true)
+                        })
+                    },
+                    error: function (data) {
+                        new PNotify({
+                            title: data.status,
+                            text: data.msg,
+                            type: 'danger',
+                            styling: 'bootstrap3'
+                        });
+                    }
+                })
+            }
+        });
+    })
+</script>
+{% endblock javascripts %}

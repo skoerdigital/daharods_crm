@@ -1,0 +1,215 @@
+{% extends "base_site.html" %} {% block title %} {{title}} {% endblock title %}
+
+{% block stylesheets %}
+  {{ block.super }}
+    <link href="/static/vendors/pnotify/dist/pnotify.css" rel="stylesheet">
+    <link href="/static/vendors/pnotify/dist/pnotify.buttons.css" rel="stylesheet">
+    <link href="/static/vendors/pnotify/dist/pnotify.nonblock.css" rel="stylesheet">
+{% endblock stylesheets %} 
+
+{% block content %}
+{% load myfilters %}
+
+<div class="right_col" role="main">
+    <div class="">
+        <div class="page-title">
+            <div class="title_left">
+                <h3>{{title}}</h3>
+            </div>
+
+            <div class="title_right">
+                <div class="col-md-5 col-sm-5 col-xs-12 form-group pull-right top_search">
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="add-product-type-modal" tabindex="-1" role="dialog" aria-labelledby="commision-modal-label" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title pull-left" id="exampleModalLabel">Dodaj nowy typ produktu</h2>
+                        <button type="button" class="close pull-right" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="product-type-form" class="form-horizontal form-label-left">{% csrf_token %}
+                            <div class="form-group center-block">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="product-name">Nazwa
+                                    <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <input type"text" id="product-name" class="form-control col-md-7 col-xs-12" required>
+                                </div>
+                            </div>
+                            <div class="form-group center-block">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="product-description">Opis
+                                    <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <input type"text" id="product-description" class="form-control col-md-7 col-xs-12" required>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="add-button">Zatwierdź</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="clearfix"></div>
+        <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="x_panel form_wizard wizard_horizontal">
+                    <div class="x_content">
+                        <form action="." method="post" id="demo-form2" class="form-horizontal form-label-left">{% csrf_token %}
+                            <div class="form-group">
+                                {{ form.product_type.errors }}
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ form.product_type.id_for_label }}">Typ produktu
+                                    <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    {{form.product_type|add_attributes:'class: form-control col-md-7 col-xs-12, required:required'}}
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">Nie ma produktu na liście?
+                                </label>
+                                <div class="col-md-3 col-sm-3 col-xs-6">
+                                    <a class="btn btn-dark form-control col-md-3 col-xs-3" id="add-product-type" ><i class="fa fa-plus-square-o" aria-hidden="true"></i> Dodaj produkt</a>
+                                    <br><br>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                {{ form.code.errors }}
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ form.code.id_for_label }}">Kod
+                                    <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    {{form.code|add_attributes:'class: form-control col-md-7 col-xs-12, required:required'}}
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                {{ form.name.errors }}
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ form.name.id_for_label }}">Nazwa
+                                    <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    {{form.name|add_attributes:'class: form-control col-md-7 col-xs-12, required:required'}}
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">Status</label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <div id="state" class="btn-group" data-toggle="buttons">
+                                        {% for choice in form.state.field.choices %}
+                                        <label class="btn btn-default {% if form.state.value == choice.0 %} active {% endif %}" data-toggle-class="btn-primary" data-toggle-passive-class="btn-default" for='{{ form.state.auto_id }}_{{ forloop.counter0 }}'>
+                                            <input name='{{ form.state.name }}' 
+                                            id='{{ form.state.auto_id }}_{{ forloop.counter0 }}' type='radio' value='{{ choice.0 }}'
+                                            {% if form.state.value == choice.0 %} checked='checked' {% endif %} required
+                                            /> {{ choice.1 }}
+                                        </label>
+                                        {% endfor %}
+                                        <br><br>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                {{ parameter.value.errors }}
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ parameter.value.id_for_label }}">Prowizja
+                                    <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <input type="number"
+                                    name="{{ parameter.value.name }}"
+                                    id="{{ parameter.value.id_for_label }}"
+                                    {% if parameter.value.value != None %}value="{{ parameter.value.value|dot_comma }}"{% endif %}
+                                    
+                                    {% if parameter.value.field.required %}required{% endif %}
+                                    class="form-control col-md-7 col-xs-12"
+                                    step=0.0001>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                {{ parameter.client_fee.errors }}
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ parameter.client_fee.id_for_label }}">Oprocentowanie roczne (klient)
+                                    <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <input type="number"
+                                    name="{{ parameter.client_fee.name }}"
+                                    id="{{ parameter.client_fee.id_for_label }}"
+                                    {% if parameter.client_fee.value != None %}value="{{ parameter.client_fee.value|dot_comma }}"{% endif %}
+                                    
+                                    {% if parameter.client_fee.field.required %}required{% endif %}
+                                    class="form-control col-md-7 col-xs-12"
+                                    step=0.00001>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                {{ parameter.duration.errors }}
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ parameter.duration.id_for_label }}">Czas trwania
+                                    <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <input type="number"
+                                    name="{{ parameter.duration.name }}"
+                                    id="{{ parameter.duration.id_for_label }}"
+                                    {% if parameter.duration.value != None %}value="{{ parameter.duration.value }}"{% endif %}
+                                    {% if parameter.duration.field.required %}required{% endif %}
+                                    class="form-control col-md-7 col-xs-12"
+                                    >
+                                </div>
+                            </div>
+                            
+                            <div class="form-group text-center">
+                                <button type="reset" class="btn btn-primary">Reset</button>
+                                <button type="submit" class="btn btn-success">Zapisz</button>
+                            </div>
+                            
+                        </form> 
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %} {% block javascripts %} 
+{{ block.super}}
+<script src="/static/vendors/pnotify/dist/pnotify.js"></script>
+<script src="/static/vendors/pnotify/dist/pnotify.nonblock.js"></script>
+<script>
+    $(function(){
+        $('#add-product-type').click(function(){
+            $('#add-product-type-modal').modal('show');
+        })
+        
+        $('#add-button').click(function(event){
+            var name = $('#product-name').val(),
+                description = $('#product-description').val();
+                if(name != "" && description !=""){
+                    $.ajax({
+                        method: "POST",
+                        url: "/products/create/type/",
+                        data: {name: name, description: description, csrfmiddlewaretoken: '{{ csrf_token }}'},
+                        success: function(data) {
+                            location.reload()
+                        }
+                    })
+                } else {
+                    new PNotify({
+                        title: "Ostrzeżenie",
+                        text: "Pola formularza nie mogą pozostać puste",
+                        type: 'danger',
+                        styling: 'bootstrap3'
+                    });
+                }
+        });
+    })
+</script>
+{% endblock javascripts %}

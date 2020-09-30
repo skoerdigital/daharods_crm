@@ -1,0 +1,201 @@
+{% extends "base_site.html" %}
+{% load myfilters %}
+
+{% block title %} Form Advanced {% endblock title %}
+
+{% block stylesheets %}
+  {{ block.super }}
+  <!-- FullCalendar -->
+  <link href="/static/vendors/fullcalendar/dist/fullcalendar.min.css" rel="stylesheet">
+  <link href="/static/vendors/fullcalendar/dist/fullcalendar.print.css" rel="stylesheet" media="print">
+  <link href="/static/vendors/pnotify/dist/pnotify.css" rel="stylesheet">
+  <link href="/static/vendors/pnotify/dist/pnotify.buttons.css" rel="stylesheet">
+  <link href="/static/vendors/pnotify/dist/pnotify.nonblock.css" rel="stylesheet">
+{% endblock stylesheets %}
+
+{% block content %}
+  <div class="right_col" role="main">
+    <div class="">
+      <div class="page-title">
+        <div class="title_left">
+          <h3>Kalendarz </h3>
+        </div>
+      </div>
+
+      <div class="clearfix"></div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="x_panel">
+                    <div class="x_title">
+                    <h2>Spotkania</h2>
+                    <ul class="nav navbar-right panel_toolbox">
+                        <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                        </li>
+
+                        <li><a class="close-link"><i class="fa fa-close"></i></a>
+                        </li>
+                    </ul>
+                    <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+
+                    <div id='calendar'></div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 col-sm-6 col-xs-6">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2>Spotkania <small></small></h2>
+                        <ul class="nav navbar-right panel_toolbox">
+                            <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                            </li>
+                            <li><a class="close-link"><i class="fa fa-close"></i></a>
+                            </li>
+                        </ul>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+                        <div class="table-responsive">
+                            <table class="table table-striped jambo_table bulk_action">
+                                <thead>
+                                <tr class="headings">
+                                    <th class="column-title">Imię </th>
+                                    <th class="column-title">Nazwisko </th>
+                                    <th class="column-title">Ilość spotkań</th>
+                                </tr>
+                                </thead>
+                
+                                <tbody>
+                                {% for ev in events_count %}
+                                <tr class="even pointer">
+                                    <td class=" ">{{ev.employee__name}}</td>
+                                    <td class=" ">{{ev.employee__surname}}</td>
+                                    <td class=" ">{{ev.event_count}}</td>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                    <tr>Nie ma elementów do wyświetlenia</tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>  
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-sm-6 col-xs-6">
+                <div class="x_panel">
+                    <div class="form-group">
+                        <form action="" method="GET">
+                            <select class="form-control" id="selectEmployee" name="usr" onchange="this.form.submit();">
+                                <option value="">Moje statystyki ze spotkań</option>
+                                {% for employee in employees_list %}
+                                    {% if employee.user != request.user %}
+                                    <option value="{{employee.id}}" {% if request.GET.usr|to_int == employee.id %} selected {% endif %} >{{employee.name}} {{employee.surname}}</option>
+                                    {% endif %}
+                                {% empty %}
+                                
+                                {% endfor %}
+                            </select>
+                        </form>
+                    </div>
+                    <div class="x_title">
+                        <h2>Liczba spotkań <small>prezentuje ile spotkań zostało umówionych w danym miesiącu roboczym</small></h2>
+                        <ul class="nav navbar-right panel_toolbox">
+                            <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
+                            <li><a class="close-link"><i class="fa fa-close"></i></a></li>
+                        </ul>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content2">
+                        <div id="graphx" style="width:100%; height:300px;" ></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /calendar modal -->
+  </div>
+{% endblock content %}
+
+{% block javascripts %}
+  {{ block.super }}
+  <!-- FullCalendar -->
+  <script src="/static/vendors/moment/min/moment.min.js"></script>
+  <script src="/static/vendors/fullcalendar/dist/fullcalendar.min.js"></script>
+  <script src="/static/vendors/fullcalendar/dist/lang/pl.js"></script>
+  <script src="/static/vendors/pnotify/dist/pnotify.js"></script>
+  <script src="/static/vendors/pnotify/dist/pnotify.nonblock.js"></script>
+  <script src="/static/vendors/raphael/raphael.min.js"></script>
+  <script src="/static/vendors/morris.js/morris.min.js"></script> 
+  <script>
+    $(function() {
+
+        Morris.Bar({
+            element: 'graphx',
+            data: [
+
+                {% for meeting in meetings_count %}
+                    { x: '{{meeting.month}}/{{meeting.year}} ', y: {{meeting.count}} },
+                {% endfor %}
+                
+                
+            ],
+            xkey: 'x',
+            ykeys: ['y'],
+            lineType: 'step',
+            barColors: ['#3498DB'],
+            hideHover: 'auto',
+            labels: ['Spotkań'],
+            resize: true
+        }).on('click', function(i, row) {
+            console.log(i, row);
+        });
+
+        if (typeof($.fn.fullCalendar) === 'undefined') {
+            return;
+        }
+    
+        var date = new Date(),
+            d = date.getDate(),
+            m = date.getMonth(),
+            y = date.getFullYear(),
+            started,
+            categoryClass;
+    
+        var calendar = $('#calendar').fullCalendar({
+            header: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'month,agendaWeek,agendaDay,listMonth'
+            },
+    
+            events: [
+            {% for event in object_list %}
+            {
+                id: '{{event.id}}',
+                title: '{{event.title}}',
+                start: new Date('{{event.start|date:'Y-m-d H:i'}}'),
+                end: new Date('{{event.end|date:'Y-m-d H:i'}}'),
+                backgroundColor: '{{event.color}}',
+                is_allday: {{event.is_allday|lower}},
+                description: '{{event.description}}',
+                owner: '{{event.owner.employee.name}} {{event.owner.employee.surname}}'
+            },
+            {% endfor %}
+            ],
+            eventRender: function(event, element)
+            { 
+                element.find('.fc-title').append("<br/>" + event.owner); 
+                element.find('.fc-list-item-title').append("<br/>" + event.owner); 
+            }
+        });
+        
+    
+    });
+  </script>
+{% endblock javascripts %}

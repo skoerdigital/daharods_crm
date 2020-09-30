@@ -1,0 +1,67 @@
+{% extends "base_site.html" %}
+{% load myfilters %}
+
+{% block title %} Login {% endblock title %}
+
+{% block stylesheets %}
+  {{ block.super }}
+  <!-- Animate.css -->
+  <link href="/static/vendors/animate.css/animate.min.css" rel="stylesheet">
+{% endblock stylesheets %}
+
+{% block body_class %}login{% endblock body_class %}
+
+{% block body %}
+  <div>
+    <div class="login_wrapper">
+      <div class="animate form login_form">
+        <section class="login_content">
+          <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            <h1>Logowanie</h1>
+            <div>
+                {% if form.errors %}
+                <p>Wpisana nazwa użytkownika i/lub hasło są nieprawidłowe</p>
+                {% endif %}
+                
+                {% if next %}
+                    {% if user.is_authenticated %}
+                    <p>Twoje konto nie posiada uprawnień do wyświetlenia tej strony</p>
+                    {% else %}
+                    <p>Zaloguj się by zobaczyć tą stronę</p>
+                    {% endif %}
+                {% endif %}
+            </div>
+            <div>
+              {{form.username|add_attributes:'class: form-control, required:required, placeholder: Username'}}
+            </div>
+            <div>
+                {{form.password|add_attributes:'class: form-control, required:required, placeholder: Password'}}
+            </div>
+            <div>
+              <input class="btn btn-default" type="submit" value="Zaloguj" />
+              <input type="hidden" name="next" value="{{ next }}" />
+            </div>
+
+            <div class="clearfix"></div>
+
+            <div class="separator">
+              <p class="change_link">Nie pamiętasz hasła?
+                  <a href="{% url 'password_reset' %}" class="to_register"> Odzyskaj hasło </a>
+              </p>
+
+              <div class="clearfix"></div>
+              <br />
+
+              <div>
+                <h1><img src="/static/images/daharods-logo-full-color.png" alt="" style="width: 80%; margin: 0 15px;"></h1>
+                <p>©2018 Daharods Selected Solutions</p>
+              </div>
+            </div>
+          </form>
+        </section>
+      </div>
+    </div>
+  </div>
+{% endblock body %}
+

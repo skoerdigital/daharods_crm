@@ -1,0 +1,476 @@
+{% extends "base_site.html" %} 
+{% load myfilters %} 
+{% block title %} Daharods {% endblock title %} 
+
+{% block stylesheets %} 
+{{ block.super }}
+<link href="/static/vendors/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet">
+<link href="/static/vendors/datatables.net-buttons-bs/css/buttons.bootstrap.min.css" rel="stylesheet">
+<link href="/static/vendors/datatables.net-fixedheader-bs/css/fixedHeader.bootstrap.min.css" rel="stylesheet">
+<link href="/static/vendors/datatables.net-responsive-bs/css/responsive.bootstrap.min.css" rel="stylesheet">
+<link href="/static/vendors/datatables.net-scroller-bs/css/scroller.bootstrap.min.css" rel="stylesheet">
+
+<link href="/static/vendors/pnotify/dist/pnotify.css" rel="stylesheet">
+<link href="/static/vendors/pnotify/dist/pnotify.buttons.css" rel="stylesheet">
+<link href="/static/vendors/pnotify/dist/pnotify.nonblock.css" rel="stylesheet"> 
+{% endblock stylesheets %} 
+
+{% block content %}
+<div class="right_col" role="main">
+  <!-- top tiles -->
+  <div class="row tile_count">
+    <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
+      <span class="count_top">
+        <i class="fa fa-user"></i> Klienci</span>
+      <div class="count">{{clients.count}}</div>
+      <span class="count_bottom">Ogółem</span>
+    </div>
+    <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
+      <span class="count_top">
+        <i class="fa fa-user"></i> Transakcje</span>
+      <div class="count">{{transactions.count}}</div>
+      <span class="count_bottom">Ogółem</span>
+    </div>
+    <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
+      <span class="count_top">
+        <i class="fa fa-money"></i> Prowizje</span>
+      <div class="count">{{commisions_count}}</div>
+      <span class="count_bottom">Ostatnia prowizja
+        <span class="count_bottom">{{transactions.last.fee}}</span> zł</span>
+    </div>
+    <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
+      <span class="count_top">
+        <i class="fa fa-money"></i> Ostatnia transakcja </span>
+      <div class="count">{{transactions.last.amount}}</div>
+      <span class="count_bottom">{{transactions.last.timestamp}}</span>
+    </div>
+  </div>
+  <!-- /top tiles -->
+
+
+  <div class="row">
+
+    <div class="col-md-12 col-sm-12 col-xs-12">
+      <div class="x_content">
+
+        <div class="bs-example" data-example-id="simple-jumbotron">
+          <div class="jumbotron">
+            <h1>Witaj, {{ user.employee.name }}!</h1>
+            <p>{% now "j F Y H:i" %}</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+
+    <div class="col-md-4 col-sm-4 col-xs-12">
+      <div class="x_panel">
+        <div class="x_title">
+          <h2>Powiadomienia</h2>
+          <ul class="nav navbar-right panel_toolbox">
+            <li>
+              <a class="collapse-link">
+                <i class="fa fa-chevron-up"></i>
+              </a>
+            </li>
+            <li>
+              <a class="close-link">
+                <i class="fa fa-close"></i>
+              </a>
+            </li>
+          </ul>
+          <div class="clearfix"></div>
+        </div>
+        <div class="x_content">
+          <div class="dashboard-widget-content">
+            <ul class="list-unstyled timeline widget">
+              {% for notification in notifications|dictsortreversed:"timestamp"|slice:":5" %}
+              <li>
+                <div class="block">
+                  <div class="block_content">
+                    <h2 class="title">
+                      <a href="{{notification.content_object.get_absolute_url}}">{{notification.content}}
+                        <b></b>
+                      </a>
+                      <br><br>
+                      {% if notification.category == 'R' %}
+                      <span>
+                        {% if notification.content_object.state == 'P' %} <button id="{{notification.object_id}}" class="btn btn-success commision-request-btn accept">Zatwierdź</button>
+                        <button id="{{notification.object_id}}" class="btn btn-danger commision-request-btn deny" >Odrzuć</button>
+                        {% endif %}    
+                        <a href="{% url 'agreements:detail' notification.object_id|get_agreement_nr %}" class="btn btn-default">Zobacz umowę</a>
+                      </span>
+                      {% elif notification.category == 'D' %}
+                      <span>
+                        <a href="{% url 'agreements:detail' notification.object_id|get_agreement_nr %}" class="btn btn-default">Zobacz umowę</a>
+                      </span>
+                      {% endif %}
+                    </h2>
+                    <div class="byline">
+                      <span>{{ notification.timestamp|timesince }} temu</span>
+                      <a></a>
+                    </div>
+                  </div>
+                </div>
+              </li>
+              {% empty %}
+              <li>
+                <p class="text-center">Brak nowych powiadomień</p>
+              </li>
+
+              {% endfor %}
+
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="col-md-8 col-sm-12 col-xs-12">
+      <div class="x_panel">
+        <div class="row x_title">
+          <div class="col-md-4">
+            <h3>Wykres przychodów<br>
+              <small>widok miesięczny</small>
+            </h3>
+          </div>
+          {% if user.is_authenticated and user.employee.role == 'A' %}
+          <div class="col-md-4">
+            <div class="form-group">
+              <form action="" method="GET">
+                <select class="form-control" id="selectEmployee" name="cuser" onchange="this.form.submit();">
+                    <option value="">Moje przychody z umów</option>
+                    {% for employee in employees_list %}
+                    <option value="{{employee.id}}" {% if request.GET.cuser|to_int == employee.id %} selected {% endif %} >{{employee.name}} {{employee.surname}}</option>
+                    {% empty %}
+                    Brak dostępnych pracowników
+                    {% endfor %}
+                </select>
+              </form>
+            </div>
+          </div>
+          {% endif %}
+          <div class="col-md-4">
+            <div id="reportrange" class="pull-right" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc">
+              <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>
+              <span>November 5, 2015 - December 31, 2015</span>
+              <b class="caret"></b>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-12 col-sm-12 col-xs-12 chart-holder">
+          <canvas id="lineChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% if user.is_authenticated and user.employee.role == 'A' %}
+  <div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+      <div class="x_panel">
+        <div class="x_title">
+          <h2>Transakcje <small>Ostatnie 10</small></h2>
+          <ul class="nav navbar-right panel_toolbox">
+            <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+            </li>
+            <li><a class="close-link"><i class="fa fa-close"></i></a>
+            </li>
+          </ul>
+          <div class="clearfix"></div>
+        </div>
+
+        <div class="x_content">
+
+          <div class="table-responsive">
+            <table class="table table-striped jambo_table bulk_action">
+              <thead>
+                <tr class="headings">
+                  <th class="column-title">Data </th>
+                  <th class="column-title">Kwota </th>
+                  <th class="column-title">Pracownik </th>
+                  <th class="column-title">Klient </th>
+                  <th class="column-title">Produkt </th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {% for transaction in transactions_all %}
+                <tr class="even pointer">
+                  <td class=" ">{{transaction.timestamp}}</td>
+                  <td class=" ">{{transaction.amount}} zł</td>
+                  <td class=" "><a href="{% url 'employees:detail' transaction.owner.username %}">{{transaction.owner.employee.name}} {{transaction.owner.employee.surname}}</a></td>
+                  <td class=" "><a href="{% url 'clients:detail' transaction.client_id.slug %}">{{transaction.client_id.name}} {{transaction.client_id.surname}}</a></td>
+                  <td class=" ">{{transaction.product_id.name}}</td>
+                  </td>
+                </tr>
+                {% empty %}
+                  <tr>Nie ma elementów do wyświetlenia</tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock content %} 
+
+{% block javascripts %} 
+{{ block.super}}
+<!-- Chart.js -->
+<script src="/static/vendors/Chart.js/dist/Chart.min.js"></script>
+<script src="/static/vendors/DateJS/build/date.js"></script>
+
+
+<script src="/static/vendors/pnotify/dist/pnotify.js"></script>
+<script src="/static/vendors/pnotify/dist/pnotify.js"></script>
+<script src="/static/vendors/pnotify/dist/pnotify.nonblock.js"></script>
+
+
+<script>
+
+  $(function () {
+    
+    $('.commision-request-btn').click(function(e){
+      id = e.target.id;
+      if( $(e.target).hasClass('accept') ){
+        $.ajax({
+          method: "POST",
+          url: "/commisions/"+ id +"/accept/",
+          data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
+          success: function(data) {
+            new PNotify({
+              title: data.status,
+              text: data.msg,
+              type: 'success',
+              styling: 'bootstrap3'
+            });
+            $('.commision-request-btn').filter('#'+id).each(function(){
+              $(this).prop("disabled",true)
+            })
+          },
+          error: function(data){
+            new PNotify({
+              title: data.status,
+              text: data.msg,
+              type: 'danger',
+              styling: 'bootstrap3'
+            });
+          }
+        })  
+      }
+      if( $(e.target).hasClass('deny') ){
+        $.ajax({
+          method: "POST",
+          url: "/commisions/"+ id +"/deny/",
+          data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
+          success: function(data) {
+            new PNotify({
+              title: data.status,
+              text: data.msg,
+              type: 'success',
+              styling: 'bootstrap3'
+            });
+            $('.commision-request-btn').filter('#'+id).each(function(){
+              $(this).prop("disabled",true)
+            })
+          },
+          error: function(data){
+            new PNotify({
+              title: data.status,
+              text: data.msg,
+              type: 'danger',
+              styling: 'bootstrap3'
+            });
+          }
+        })
+      }
+    });
+
+    function init_daterangepicker() {
+
+      moment.locale("pl-PL");
+
+      if (typeof ($.fn.daterangepicker) === 'undefined') {
+        return;
+      }
+
+      var cb = function (start, end, label) {
+        console.log(start.toISOString(), end.toISOString(), label);
+      };
+
+      var optionSet1 = {
+        startDate: moment().subtract(29, 'days'),
+        endDate: moment(),
+        minDate: '01/01/1900',
+        maxDate: '12/31/2100',
+        dateLimit: {
+          days: 3660
+        },
+        showDropdowns: true,
+        showWeekNumbers: true,
+        timePicker: false,
+        timePickerIncrement: 1,
+        timePicker12Hour: true,
+        ranges: {
+          'Ostatnie 3 miesiące': [moment().subtract(3, 'month').startOf('month'), moment().endOf('month')],
+          'Ostatnie 6 miesięcy': [moment().subtract(6, 'month').startOf('month'), moment().endOf('month')],
+          'Ostatnie 12 miesięcy': [moment().subtract(12, 'month').startOf('month'), moment().endOf('month')],
+          'Ostatnie 2 lata': [moment().subtract(2, 'year').startOf('year'), moment().endOf('month')],
+          'Ostatnie 5 lat': [moment().subtract(5, 'year').startOf('year'), moment().endOf('month')],
+        },
+        opens: 'left',
+        buttonClasses: ['btn btn-default'],
+        applyClass: 'btn-small btn-primary',
+        cancelClass: 'btn-small',
+        format: 'DD/MM/YYYY',
+        separator: ' to ',
+        locale: {
+          applyLabel: 'Zatwierdź',
+          cancelLabel: 'Reset ',
+          fromLabel: 'Od',
+          toLabel: 'Do',
+          customRangeLabel: 'Wybierz zakres...',
+          daysOfWeek: ['Nie', 'Pon', 'Wto', 'Śro', 'Czw', 'Pią', 'Sob'],
+          monthNames: ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'],
+          firstDay: 1,
+          locale: { format: "DD/MM/YYYY" }
+        }
+      };
+
+
+      $('#reportrange').daterangepicker(optionSet1, cb);
+      $('#reportrange').on('show.daterangepicker', function () {
+        console.log("show event fired");
+      });
+      $('#reportrange').on('hide.daterangepicker', function () {
+        console.log("hide event fired");
+      });
+      $('#reportrange').on('apply.daterangepicker', function (ev, picker) {
+        console.log("apply event fired, start/end dates are " + picker.startDate.format('MMMM D, YYYY') + " to " + picker.endDate.format('MMMM D, YYYY'));
+        setChart(picker.startDate.format('MMMM D, YYYY'), picker.endDate.format('MMMM D, YYYY'));
+      });
+      $('#reportrange').on('cancel.daterangepicker', function (ev, picker) {
+        console.log("cancel event fired");
+      });
+      $('#options1').click(function () {
+        $('#reportrange').data('daterangepicker').setOptions(optionSet1, cb);
+      });
+      $('#options2').click(function () {
+        $('#reportrange').data('daterangepicker').setOptions(optionSet2, cb);
+      });
+      $('#destroy').click(function () {
+        $('#reportrange').data('daterangepicker').remove();
+      });
+    }
+
+    function setChart() {
+      var date,
+        endDate,
+        monthNameList = ["Sty", "Lut", "Mar", "Kwi", "Maj", "Cze", "Lip", "Sie", "Wrz", "Paz", "Lis", "Gru"],
+        c = 0,
+        linechart_data = {
+          labels: [],
+          data: [],
+        },
+        django_stats = {
+          date: [{% for trans_stat in transactions_count %}'{{trans_stat.month}}/{{trans_stat.year}}', {% endfor %}],
+    stats: [{% for trans_stat in transactions_count %}'{{trans_stat.count|dot_comma}}', {% endfor %}],
+            }
+
+  if (arguments.length == 0) {
+    moment.locale('pl-PL');
+    date = new Date("{{transactions_count.0.month}}/1/{{transactions_count.0.year}}");
+    date.setMonth(date.getMonth() - 1);
+    endDate = new Date("{{transactions_count.last.month}}/30/{{transactions_count.last.year}}");
+    $('#reportrange').find('span').text(moment(date).format('L') + ' - ' + moment(endDate).format('L'))
+  } else {
+    date = new Date(arguments[0]);
+    endDate = new Date(arguments[1]);
+    $('#reportrange').find('span').text(moment(date).format('L') + ' - ' + moment(endDate).format('L'))
+  }
+
+  while (date <= endDate) {
+    console.log(date)
+    var stringDate = monthNameList[date.getMonth()] + " " + date.getFullYear();
+    linechart_data.labels.push(stringDate);
+    if (django_stats.date.indexOf(date.getMonth() + 1 + '/' + date.getFullYear()) > -1) {
+      linechart_data.data.push(django_stats.stats[c]);
+      c++;
+    } else {
+      linechart_data.data.push("0");
+    }
+    date.setMonth(date.getMonth() + 1);
+  }
+
+  if ($('#lineChart').length) {
+    var ctx = document.getElementById("lineChart");
+    var lineChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: linechart_data.labels,
+        datasets: [{
+          label: "Przychody z umów w zł",
+          backgroundColor: "rgba(38, 185, 154, 0.31)",
+          borderColor: "rgba(38, 185, 154, 0.7)",
+          pointBorderColor: "rgba(38, 185, 154, 0.7)",
+          pointBackgroundColor: "rgba(38, 185, 154, 0.7)",
+          pointHoverBackgroundColor: "#fff",
+          pointHoverBorderColor: "rgba(220,220,220,1)",
+          pointBorderWidth: 1,
+          data: linechart_data.data
+        }]
+      },
+      options: {
+        scales: {
+          yAxes: [{
+            display: true,
+            ticks: {
+              suggestedMin: 0,    // minimum will be 0, unless there is a lower value.
+              // OR //
+              beginAtZero: true   // minimum value will be 0.
+            }
+          }]
+        }
+      }
+    })
+
+    if (arguments.length > 0) {
+      lineChart.destroy();
+      $('#lineChart').remove();
+      $(".chart-holder").prepend('<canvas id="lineChart"></canvas>');
+      var ctx = document.getElementById("lineChart");
+      lineChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: linechart_data.labels,
+          datasets: [{
+            label: "Przychody z umowy w zł",
+            backgroundColor: "rgba(38, 185, 154, 0.31)",
+            borderColor: "rgba(38, 185, 154, 0.7)",
+            pointBorderColor: "rgba(38, 185, 154, 0.7)",
+            pointBackgroundColor: "rgba(38, 185, 154, 0.7)",
+            pointHoverBackgroundColor: "#fff",
+            pointHoverBorderColor: "rgba(220,220,220,1)",
+            pointBorderWidth: 1,
+            data: linechart_data.data
+          }]
+        }
+      })
+
+    }
+  }
+      }
+  setChart();
+  init_daterangepicker();
+  });
+</script> 
+{% endblock javascripts %}

@@ -1,0 +1,373 @@
+{% extends "base_site.html" %}
+
+{% block title %} Table Dynamic {% endblock title %}
+
+{% block stylesheets %}
+  {{ block.super }}
+    <link href="/static/vendors/pnotify/dist/pnotify.css" rel="stylesheet">
+    <link href="/static/vendors/pnotify/dist/pnotify.buttons.css" rel="stylesheet">
+    <link href="/static/vendors/pnotify/dist/pnotify.nonblock.css" rel="stylesheet">
+{% endblock stylesheets %}
+
+{% block content %}
+  <div class="right_col" role="main">
+    <div class="">
+      <div class="page-title">
+        <div class="title_left">
+          <h3>Transakcje</h3>
+        </div>
+      </div>
+
+    <div class="modal fade" id="commision-result" tabindex="-1" role="dialog" aria-labelledby="commision-modal-label" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Potwierdzenie</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Czy na pewno chcesz potwierdzić wypłatę?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="commision-modal" tabindex="-1" role="dialog" aria-labelledby="commision-modal-label" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Potwierdzenie</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Czy na pewno chcesz potwierdzić wypłatę?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Anuluj</button>
+                    <button type="button" class="btn btn-primary commision-confirm">Potwierdź</button>
+                </div>
+            </div>
+        </div>
+    </div>
+      <div class="clearfix"></div>
+
+      <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="x_panel">
+
+                <div class="transactions">
+                    {% if object_list %}
+                    <div class="col-md-5 col-sm-5 col-xs-12 form-group pull-right top_search">
+                        <div class="input-group">
+                            <input type="text" class="form-control quicksearch" placeholder="Szukaj...">
+                            <span class="input-group-btn">
+                            <button class="btn btn-default" type="button"><i class="fa fa-search" aria-hidden="true"></i></button>
+                            </span>
+                        </div>
+                    </div>
+                                    
+
+                    <div class="option-combo products">
+                        <h4>Produkty</h4>
+                        <ul class="filter option-set clearfix " data-filter-group="products">
+                            <li data-filter-value="" class="selected">Wszystkie</li>
+                            {% for product_cat in product_categories %}
+                                <li data-filter-value=".{{product_cat|cut:"/"}}">
+                                    {{product_cat}}
+                                </li>
+                            {% empty %}
+                                <p>Nie znaleziono produktów</p>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                        
+                    <h4>Sortowanie</h4>
+                    <ul class="sorting button-group sort-by-button-group">
+                        <li class="sort-asc is-checked" data-sort-value="original-order">Brak</li>
+                        <li data-sort-value="amount">Kwota <span></span></li>
+                        <li class="" data-sort-value="fee">Prowizja <span></span></li>
+                        <li class="" data-sort-value="created">Data utworzenia <span></span></li>
+                        <li class="" data-sort-value="valid_since">Data rozpoczęcia <span></span></li>
+                        <li class="" data-sort-value="valid_to">Data rozpoczęcia <span></span></li>
+                    </ul>
+                    {% endif %}
+                    
+                    
+                   <div class="ln_solid"></div>
+      
+                    <ul class="list-unstyled user_data" id="transactions-list">
+                        {% for transaction in object_list %}
+                        <li class="transaction col-md-4 col-sm-4 col-xs-12 {{transaction.product_id|cut:"/"}}">
+                            <div class="transactions__card">
+                                <p> <a href="{{transaction.client_id.get_absolute_url}}"><span style="color:#fff; padding:3px 6px; background: #337ab7; margin: 5px auto">{{transaction.client_id.name}} {{transaction.client_id.surname}}</span></a>
+                                    <a href="{% url 'products:list' %}"><span style="color:#fff; padding:3px 6px; background: #337ab7; margin: 5px auto">
+                                        {{transaction.product_id}}</span></a></p>
+                                <div class="progress progress_sm">
+                                <div class="progress-bar bg-green" role="progressbar" data-transitiongoal="{{transaction.time_left}}"></div><span> Pozostało: {{transaction.valid_to|timeuntil}}</span>
+                                </div>
+                                <p> Kwota:
+                                    <span style="color:#73879C; padding:3px 6px; background: none; border: 1px solid #73879C; margin: 5px auto" class="amount">{{transaction.amount}} zł</span></p>
+        
+                                <p> Prowizja: 
+                                    <span style="color:#73879C; padding:3px 6px; background: none; border: 1px solid #73879C; margin: 5px auto" class="fee">{{transaction.fee}} zł</span></p>
+        
+                                <p> Utworzono: 
+                                    <span style="color:#73879C; padding:3px 6px; background: none; border: 1px solid #73879C; margin: 5px auto" data-created="{{transaction.timestamp|date:"SHORT_DATE_FORMAT"}}">{{transaction.timestamp}}</span></p>
+        
+                                <p> Ważna od: 
+                                    <span style="color:#73879C; padding:3px 6px; background: none; border: 1px solid #73879C; margin: 5px auto" data-start='{{transaction.valid_since|date:"SHORT_DATE_FORMAT"}}'>{{transaction.valid_since}}</span></p>
+
+                                <p> Ważna do: 
+                                    <span style="color:#73879C; padding:3px 6px; background: none; border: 1px solid #73879C; margin: 5px auto" data-finish='{{transaction.valid_to|date:"SHORT_DATE_FORMAT"}}'>{{transaction.valid_to}}</span></p>
+
+                                {% if user.is_authenticated %}
+                                <p> Pracownik: 
+                                    <span style="color:#73879C; padding:3px 6px; background: none; border: 1px solid #73879C; margin: 5px auto">{{transaction.owner}}</span></p>
+                                {% endif %}
+                                
+                                {% if user.is_authenticated and user.employee.role == 'E' %}
+                                <p class="pull-right commision-request">
+                                    {% if transaction.commision.request == False and transaction.commision.state == 'I' %} 
+                                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#commision-modal" data-id='{{transaction.id}}'>
+                                    Poproś o wypłatę prowizji 
+                                    </button>
+                                    {% elif transaction.commision.request == True and transaction.commision.state == 'P' %}
+                                    <button type="button" class="btn btn-primary pending" disabled>
+                                    Prośba o wypłatę została wysłana
+                                    </button>
+                                    {% elif transaction.commision.accepted == False and transaction.commision.state == 'D' %}
+                                    <button type="button" class="btn btn-primary denided" disabled>
+                                    Prośba została odrzucona <i class="fa fa-ban" aria-hidden="true"></i>
+                                    </button>
+                                    {% elif transaction.commision.accepted == True and transaction.commision.state == 'A' %}
+                                    <button type="button" class="btn btn-primary success" disabled>
+                                    Wypłata prowizji zaakceptowana <i class="fa fa-check" aria-hidden="true"></i>
+                                    </button>
+                                    {% endif %}
+                                </p>
+                                {% endif %}
+                            </div>
+                        </li>
+                        {% empty %}
+                        Brak wyników 
+                        {% endfor %} 
+                    </ul>
+                    <br><br>
+                </div>
+            </div>
+          </div>
+      </div>
+    </div>
+  </div>
+{% endblock content %}
+
+{% block javascripts %}
+  {{ block.super }}
+  <script src="/static/vendors/Chart.js/dist/Chart.min.js"></script>
+  <script>
+    function init_chart_doughnut() {
+
+        if (typeof(Chart) === 'undefined') {
+            return;
+        }
+
+        if ($('.canvasDoughnut').length) {
+    
+            var chart_doughnut_settings = {
+                type: 'doughnut',
+                tooltipFillColor: "rgba(51, 51, 51, 0.55)",
+                data: {
+                    labels: [
+                    {% for data in usage %}"{{data.product}}",{% endfor %}
+                    ],
+                    datasets: [{
+                        data: [
+                            {% for data in usage %}{{data.total}},{% endfor %}
+                        ],
+                        backgroundColor: [ 
+                            "#4A7DC9","#4B54C7","#6B4CC5","#924DC3","#B74EC1","#BF4FA3","#BD507E","#BB515B","#B96B52","#B78C53","#B5AB54","#9DB355","#7EB156","#60AF57","#58AD6A"
+                        ],
+                        hoverBackgroundColor: [
+                            "#ADC0DC","#ACB0DB","#B8ACDB","#C7ACDA","#D6ABDA","#D9ABCE","#D9ABBE","#D9ABAF","#D8B5AA","#D8C4AA","#D7D3AA","#CCD7A9","#BDD6A9","#AED6A9","#A9D6B2"
+                        ]
+                    }]
+                },
+                options: {
+                    legend: false,
+                    responsive: false
+                }
+            }
+    
+            $('.canvasDoughnut').each(function() {
+    
+                var chart_element = $(this);
+                var chart_doughnut = new Chart(chart_element, chart_doughnut_settings);
+    
+            });
+    
+        }
+    
+    }
+  </script>
+  <script src="https://unpkg.com/isotope-layout@3.0.5/dist/isotope.pkgd.min.js"></script>
+  <script src="/static/vendors/pnotify/dist/pnotify.js"></script>
+  <script src="/static/vendors/pnotify/dist/pnotify.nonblock.js"></script>
+  <script>
+    $(function(){
+        var transactionId;
+
+        $('#commision-modal').on('show.bs.modal', function(e) {
+            transactionId = $(e.relatedTarget).data('id');
+        });
+
+        $('.commision-confirm').click(function(event){
+            $.ajax({
+                method: "POST",
+                url: "/commisions/"+transactionId+"/",
+                data: {transaction: transactionId , csrfmiddlewaretoken: '{{ csrf_token }}'},
+                success: function(data) {
+                    $('#commision-modal').modal('hide')
+                    if(data.done==true){
+                        $('.commision-request button').filter('[data-id="' + transactionId + '"]').html('Prośba o wypłatę została wysłana').attr("disabled", true);
+                    }
+                }
+            })
+        });
+    })
+        
+    $(function(){
+
+        var qsRegex;
+        var buttonFilter;
+
+        var $container = $('#transactions-list'),
+            filters = {};
+
+        $container.isotope({
+            itemSelector : '.transaction',
+            getSortData: {
+                amount: function( itemElem ) {
+                    var weight = $( itemElem ).find('.amount').text();
+                    return parseFloat( weight.replace( /[\(\)]/g, '') );
+                },
+                fee: function( itemElem ) {
+                    var weight = $( itemElem ).find('.fee').text();
+                    return parseFloat( weight.replace( /[\(\)]/g, '') );
+                },
+                created: function (itemElem) {
+                    var created = $(itemElem).find('[data-created]').text();
+                    return parseInt( created.replace( '-', '') );
+                },
+                valid_since: function (itemElem) {
+                    var valid_since = $(itemElem).find('[data-start]').text();
+                    return parseInt( valid_since.replace( '-', '') );
+                },
+                valid_to: function (itemElem) {
+                    var valid_to = $(itemElem).find('[data-finish]').text();
+                    return parseInt( valid_to.replace( '-', '') );
+                }
+            },
+            filter: function () {
+                var $this = $(this);
+                var searchResult = qsRegex ? $this.text().match(qsRegex) : true;
+                var buttonResult = buttonFilter ? $this.is(buttonFilter) : true;
+                console.log(buttonFilter);
+                return searchResult && buttonResult;
+            }
+        });
+
+        var $quicksearch = $('.quicksearch').keyup( debounce( function() {
+            qsRegex = new RegExp( $quicksearch.val(), 'gi' );
+            $container.isotope();
+        }, 200 ) );
+
+        function debounce( fn, threshold ) {
+            var timeout;
+            return function debounced() {
+                if ( timeout ) {
+                    clearTimeout( timeout );
+                }
+                function delayed() {
+                    fn();
+                    timeout = null;
+                }
+                timeout = setTimeout( delayed, threshold || 100 );
+            }
+        }
+          
+
+        // filter buttons
+        $('.filter li').click(function(){
+            var $this = $(this);
+            buttonFilter = $(this).attr('data-filter-value');
+
+            if ( $this.hasClass('selected') ) {
+                return;
+            }
+
+            var $optionSet = $this.parents('.option-set');
+
+            $optionSet.find('.selected').removeClass('selected');
+            $this.addClass('selected');
+            
+            var group = $optionSet.attr('data-filter-group');
+            filters[ group ] = $this.attr('data-filter-value');
+            // convert object into array
+            var isoFilters = [];
+            for ( var prop in filters ) {
+                isoFilters.push( filters[ prop ] )
+            }
+            var selector = isoFilters.join('');
+            $container.isotope();
+            return false;
+        });
+
+        $('.sort-by-button-group').on( 'click', 'li', function() {
+            var sortValue = $(this).attr('data-sort-value');
+
+            var sortClass = $(this).hasClass('sort-asc');
+
+            var checkedGroup = $('.sort-by-button-group')
+            $('.sort-by-button-group').each(function() {
+                if(!$(this).hasClass('is-checked')) {
+                    $(this).find('span').html('')
+                } 
+            });
+
+            $(this).toggleClass('sort-asc');
+
+            if(sortClass){
+                $(this).find('span').html(' <i class="fa fa-caret-down" aria-hidden="true"></i>')
+            } else{
+                $(this).find('span').html(' <i class="fa fa-caret-up" aria-hidden="true"></i>')
+            }
+
+            console.log(sortValue)
+            
+            $container.isotope({ 
+                sortBy: sortValue,
+                sortAscending: {
+                    [sortValue]: !sortClass
+                }
+            });
+        });
+        
+        // change is-checked class on buttons
+        $('.button-group').each( function( i, buttonGroup ) {
+            var $buttonGroup = $( buttonGroup );
+            $buttonGroup.on( 'click', 'li', function() {
+                $buttonGroup.find('.is-checked').removeClass('is-checked');
+                $( this ).addClass('is-checked');
+            });
+        });
+    });
+</script>
+{% endblock javascripts %}

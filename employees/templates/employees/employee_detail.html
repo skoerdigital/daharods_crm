@@ -1,0 +1,114 @@
+
+{% extends "base_site.html" %}
+{% load myfilters %}
+
+{% block title %} Profile {% endblock title %}
+
+{% block stylesheets %}
+  {{ block.super }}
+  <link href="/static/vendors/pnotify/dist/pnotify.css" rel="stylesheet">
+  <link href="/static/vendors/pnotify/dist/pnotify.buttons.css" rel="stylesheet">
+  <link href="/static/vendors/pnotify/dist/pnotify.nonblock.css" rel="stylesheet">
+{% endblock stylesheets %}
+
+{% block content %}
+  <div class="right_col" role="main">
+    <div class="">
+      <div class="page-title">
+      </div>
+
+      <div class="clearfix"></div>
+
+      <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+          <div class="x_panel">
+            <div class="x_content">
+              <div class="col-md-3 col-sm-3 col-xs-12 profile_left">
+
+                <h1>{{object.employee.name}} {{object.employee.surname}} </h1>
+                
+                <small style="color:#fff; padding:3px 6px; background: #73879C; text-transform: uppercase">{{object.employee.employee_nr}}</small>
+                <small style="color:#fff; padding:3px 6px; background: #447bb5">{{object.employee.role}}</small>
+                <small style="color:#fff; padding:3px 6px; {% if object.employee.employee_state == 'A'%} background: #5cb85c {%  else %} background: #73879C {% endif %}">{{object.employee.employee_state|state}}</small> 
+                <br><br>
+
+                <ul class="list-unstyled user_data">
+                  <li><i class="fa fa-envelope-o user-profile-icon"></i> | {{object.email}}
+                  </li>
+                </ul>
+
+                <p>Ostatnie logowanie:
+                    <small style="color:#73879C; padding:3px 6px; background: none; border: 1px solid #73879C; margin: 5px auto">{{object.last_login|timesince}} temu</small></p>
+                
+
+                <p>Uwtorzony:
+                    <small style="color:#73879C; padding:3px 6px; background: none; border: 1px solid #73879C; margin: 5px auto">{{object.employee.timestamp|timesince}} temu</small></p>
+                
+                <p>Ostatnio edytowany:
+                  <small style="color:#73879C; padding:3px 6px; background: none; border: 1px solid #73879C;  ">{{object.employee.updated|timesince}} temu</small>
+                </p><br>
+                <a class="btn btn-success" href="{% url 'employees:edit' object.username %}"><i class="fa fa-edit m-right-xs"></i> Edytuj dane </a>
+                <a class="btn btn-warning" href="{% url 'employees:password' object.username %}"><i class="fa fa-edit m-right-xs"></i> Edytuj hasło </a>
+                {% if user.is_authenticated and user.employee.role == 'A' %}
+                <h4>Przypisz bazę</h4>
+                <p>Administrator posiada możliwość przypisania kontaktów oraz umów od innego użytkownika.</p>
+                <form action="">
+                  <select class="form-control" id="selected-user">
+                    <option value=""> Wybierz z listy </option>
+                    {% for employee in employees_list %}
+                      {% if employee.user.username != object.username %}
+                        <option value="{{employee.user.username}}">{{employee.name}} {{employee.surname}}</option> 
+                      {% endif %}
+                    {% endfor %}
+                  </select>
+                  <br>
+                  <button class="btn btn-primary" id="submit-migrate">Dokonaj migracji</button>
+                </form>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock content %}
+
+{% block javascripts %}
+{{ block.super }}
+
+<script src="/static/vendors/pnotify/dist/pnotify.js"></script>
+<script src="/static/vendors/pnotify/dist/pnotify.nonblock.js"></script>
+<script>
+    $(function(){
+        $('#submit-migrate').click(function(event){
+            event.preventDefault();
+            var selectedUser = $('#selected-user').val();
+            console.log(selectedUser);
+            if(selectedUser != ""){
+                $.ajax({
+                    method: "POST",
+                    url: "/employees/migrate/",
+                    data: {toMigrate: selectedUser,  current: "{{user.username}}", csrfmiddlewaretoken: '{{ csrf_token }}'},
+                    success: function(data) {
+                      new PNotify({
+                          title: data.status,
+                          text: data.msg,
+                          type: 'success',
+                          styling: 'bootstrap3'
+                      });
+                    }
+                })
+            } else {
+                new PNotify({
+                    title: "Ostrzeżenie",
+                    text: "Proszę wybrać z listy użytkownika",
+                    type: 'danger',
+                    styling: 'bootstrap3'
+                });
+            }
+        });
+    })
+</script>
+
+{% endblock javascripts %} 

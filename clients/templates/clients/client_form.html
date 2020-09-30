@@ -1,0 +1,353 @@
+{% extends "base_site.html" %} {% block title %} {{title}} {% endblock title %} {% block content %}
+{% load myfilters %}
+
+<div class="right_col" role="main">
+    <div class="">
+        <div class="page-title">
+            <div class="title_left">
+                <h3>{{title}}</h3>
+            </div>
+
+            <div class="title_right">
+                <div class="col-md-5 col-sm-5 col-xs-12 form-group pull-right top_search">
+                </div>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+        
+        <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="x_panel form_wizard wizard_horizontal">
+                    <div class="x_content">
+
+                        
+                        <form action="." method="post" id="demo-form2" class="form-horizontal form-label-left">{% csrf_token %}
+                            
+                            {{ form.management_form }}
+                            {{ clientaddress.management_form }}
+                            {{ clientcontact.management_form }}
+                        
+                            <div class="form-group">
+                                {{ form.name.errors }}
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ form.name.id_for_label }}">Pierwsze imię
+                                    <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <input type="text"
+                                    name="{{ form.name.name }}"
+                                    id="{{ form.name.id_for_label }}"
+                                    {% if form.name.value != None %}value="{{ form.name.value|stringformat:'s' }}"{% endif %}
+                                    maxlength="{{ form.name.field.max_length }}"
+                                    {% if form.name.field.required %}required{% endif %}
+                                    class="form-control col-md-7 col-xs-12">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                {{ form.second_name.errors }}
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ form.second_name.id_for_label }}">Drugie imię
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <input type="text"
+                                    name="{{ form.second_name.name }}"
+                                    id="{{ form.second_name.id_for_label }}"
+                                    {% if form.second_name.value != None %}value="{{ form.second_name.value|stringformat:'s' }}"{% endif %}
+                                    maxlength="{{ form.second_name.field.max_length }}"
+                                    {% if form.second_name.field.required %}required{% endif %}
+                                    class="form-control col-md-7 col-xs-12">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                {{ form.surname.errors }}
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ form.surname.id_for_label }}">Nazwisko
+                                    <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <input type="text"
+                                    name="{{ form.surname.name }}"
+                                    id="{{ form.surname.id_for_label }}"
+                                    {% if form.surname.value != None %}value="{{ form.surname.value|stringformat:'s' }}"{% endif %}
+                                    maxlength="{{ form.surname.field.max_length }}"
+                                    {% if form.surname.field.required %}required{% endif %}
+                                    class="form-control col-md-7 col-xs-12"
+                                    >
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ form.birthday.id_for_label }}">Data urodzenia
+                                    <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <input type="text"
+                                    name="{{ form.birthday.name }}"
+                                    id="{{ form.birthday.id_for_label }}"
+                                    {% if form.birthday.value != None %}value="{{ form.birthday.value|date:'Y-m-d' }}"{% endif %}
+                                    {% if form.birthday.field.required %}required{% endif %}
+                                    class="form-control col-md-7 col-xs-12"
+                                    style="padding-left: 40px">
+                                    <span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>
+                                </div>                                
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">Płec</label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <div id="gender" class="btn-group" data-toggle="buttons">
+                                        {% for choice in form.gender.field.choices %}
+                                        <label class="btn btn-default {% if form.gender.value == choice.0 %} active {% endif %}" data-toggle-class="btn-primary" data-toggle-passive-class="btn-default" for='{{ form.gender.auto_id }}_{{ forloop.counter0 }}'>
+                                            <input name='{{ form.gender.name }}' 
+                                            id='{{ form.gender.auto_id }}_{{ forloop.counter0 }}' type='radio' value='{{ choice.0 }}'
+                                            {% if form.gender.value == choice.0 %} checked='checked' {% endif %} required
+                                            /> {{ choice.1 }}
+                                        </label>
+                                        {% endfor %}
+                                        <br><br>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                {{ form.city.errors }}
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ form.city.id_for_label }}">Miasto
+                                    <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <input type="text"
+                                    name="{{ form.city.name }}"
+                                    id="{{ form.city.id_for_label }}"
+                                    {% if form.city.value != None %}value="{{ form.city.value|stringformat:'s' }}"{% endif %}
+                                    maxlength="{{ form.city.field.max_length }}"
+                                    {% if form.city.field.required %}required{% endif %}
+                                    class="form-control col-md-7 col-xs-12"
+                                    >
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ form.pesel.id_for_label }}">PESEL
+                                    <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                        {{ form.pesel.errors }}
+                                    <input type="number"
+                                    name="{{ form.pesel.name }}"
+                                    id="{{ form.pesel.id_for_label }}"
+                                    {% if form.pesel.value != None %}value="{{ form.pesel.value }}"{% endif %}
+                                    {% if form.pesel.field.required %}required{% endif %}
+                                    class="form-control col-md-7 col-xs-12"
+                                    maxlength="11"
+                                    >
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">Status</label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <div id="client_state" class="btn-group" data-toggle="buttons">
+                                        {% for choice in form.client_state.field.choices %}
+                                        <label class="btn btn-default {% if form.client_state.value == choice.0 %} active {% endif %}" data-toggle-class="btn-primary" data-toggle-passive-class="btn-default" for='{{ form.client_state.auto_id }}_{{ forloop.counter0 }}'>
+                                            <input name='{{ form.client_state.name }}' 
+                                            id='{{ form.client_state.auto_id }}_{{ forloop.counter0 }}' type='radio' value='{{ choice.0 }}'
+                                            {% if form.client_state.value == choice.0 %} checked='checked' {% endif %} required
+                                            /> {{ choice.1 }}
+                                        </label>
+                                        {% endfor %}
+                                        <br><br>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12">Typ dokumentu</label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <div id="doc_type" class="btn-group" data-toggle="buttons">
+                                        {% for choice in form.doc_type.field.choices %}
+                                        <label class="btn btn-default {% if form.doc_type.value == choice.0 %} active {% endif %}" data-toggle-class="btn-primary" data-toggle-passive-class="btn-default" for='{{ form.doc_type.auto_id }}_{{ forloop.counter0 }}'>
+                                            <input name='{{ form.doc_type.name }}' 
+                                            id='{{ form.doc_type.auto_id }}_{{ forloop.counter0 }}' type='radio' value='{{ choice.0 }}'
+                                            {% if form.doc_type.value == choice.0 %} checked='checked' {% endif %} required
+                                            /> {{ choice.1 }}
+                                        </label>
+                                        {% endfor %}
+                                        <br><br>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                {{ form.doc_nr.errors }}
+                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ form.doc_nr.id_for_label }}">Numer dokumentu
+                                    <span class="required">*</span>
+                                </label>
+                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                    <input type="text"
+                                    name="{{ form.doc_nr.name }}"
+                                    id="{{ form.doc_nr.id_for_label }}"
+                                    {% if form.doc_nr.value != None %}value="{{ form.doc_nr.value }}"{% endif %}
+                                    maxlength="{{ form.doc_nr.field.max_length }}"
+                                    {% if form.doc_nr.field.required %}required{% endif %}
+                                    class="form-control col-md-7 col-xs-12"
+                                    >
+                                </div>
+                            </div>
+
+                            <div class="ln_solid"></div>
+
+                            <div id="tabs" class="formsets text-center">
+                                <ul style="list-style:none;margin:0;padding: 0 0 20px 0">
+                                    <li style="display:inline-block"><a class="btn btn-default" href="#address_list">Dane adresowe</a></li>
+                                    <li style="display:inline-block"><a class="btn btn-default" href="#contact_list">Dane kontaktowe</a></li>
+                                </ul>
+                                <div class="address_list" id="address_list">
+                                    {% for form in clientaddress %}
+                                        {% for hidden in form.hidden_fields %}
+                                            {{ hidden }}
+                                        {% endfor %}  
+                                    
+                                        <div class="clientaddress_row">
+                                            <div class="form-group">
+                                                {{ form.contact_type.errors }}
+                                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ form.contact_type.id_for_label }}">Typ
+                                                    <span class="required">*</span>
+                                                </label>
+                                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                                    {{form.contact_type|add_attributes:'class: form-control col-md-7 col-xs-12, required:required'}}
+                                                    {{form.id}}
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                {{ form.street.errors }}
+                                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ form.street.id_for_label }}">Ulica
+                                                    <span class="required">*</span>
+                                                </label>
+                                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                                    {{form.street|add_attributes:'class: form-control col-md-7 col-xs-12, required:required'}}
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                {{ form.house_nr.errors }}
+                                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ form.house_nr.id_for_label }}">Numer domu / budynku
+                                                    <span class="required">*</span>
+                                                </label>
+                                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                                    {{form.house_nr|add_attributes:'class: form-control col-md-7 col-xs-12, required:required'}}
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                {{ form.apartment_nr.errors }}
+                                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ form.apartment_nr.id_for_label }}">Numer mieszkania
+                                                    <span class="required">*</span>
+                                                </label>
+                                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                                    {{form.apartment_nr|add_attributes:'class: form-control col-md-7 col-xs-12, required:required'}}
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                {{ form.post.errors }}
+                                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ form.post.id_for_label }}">Poczta
+                                                    <span class="required">*</span>
+                                                </label>
+                                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                                    {{form.post|add_attributes:'class: form-control col-md-7 col-xs-12, required:required'}}
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                {{ form.postal_code.errors }}
+                                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ form.postal_code.id_for_label }}">Kod pocztowy
+                                                    <span class="required">*</span>
+                                                </label>
+                                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                                    {{form.postal_code|add_attributes:'class: form-control col-md-7 col-xs-12, required:required'}}
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ form.country.id_for_label }}">Państwo
+                                                        <span class="required">*</span>
+                                                    </label>
+                                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                                    
+                                                    {{form.country|add_attributes:'class: form-control col-md-7 col-xs-12, required:required'}}
+                                                    
+                                                </div>
+                                            </div>
+                                            {{ form.DELETE }}
+                                        </div> 
+                                        <div class="ln_solid"></div>
+                                    {% endfor %}
+                                </div>
+                            
+                                <div class="contact_list" id="contact_list">
+                                    {% for form in clientcontact %}
+                                        {% for hidden in form.hidden_fields %}
+                                            {{ hidden }}
+                                        {% endfor %}  
+                                        <div class="clientcontact_row">
+                                            <div class="form-group">
+                                                {{ form.contact_type.errors }}
+                                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ form.contact_type.id_for_label }}">Rodzaj kontaktu
+                                                    <span class="required">*</span>
+                                                </label>
+                                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                                    {{form.contact_type|add_attributes:'class: form-control col-md-7 col-xs-12, required:required'}}
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                {{ form.value.errors }}
+                                                <label class="control-label col-md-3 col-sm-3 col-xs-12" for="{{ form.value.id_for_label }}">Kontakt
+                                                        <span class="required">*</span>
+                                                    </label>
+                                                <div class="col-md-6 col-sm-6 col-xs-12">
+                                                    {{form.value|add_attributes:'class: form-control col-md-7 col-xs-12, required:required'}}
+                                                </div>
+                                            </div>                                    
+                                            {{ form.DELETE }}
+                                        </div>
+                                        <div class="ln_solid"></div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="form-group text-center">
+                                <button type="reset" class="btn btn-primary">Reset</button>
+                                <button type="submit" class="btn btn-success">Zapisz</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %} {% block javascripts %} 
+{{ block.super}}
+<script src="/static/vendors/datetimepicker/jquery.datetimepicker.full.min.js"></script>
+<script src="/static/vendors/formset/jquery.formset.js"></script>
+<script type="text/javascript">
+    $(function() {
+        $('.clientaddress_row').formset({
+            addText: 'Dodaj nowy kontakt',
+            deleteText: 'Usuń kontakt',
+            addCssClass: 'btn btn-primary centered col-md-2 col-sm-2 col-xs-6',
+            deleteCssClass: 'btn btn-danger centered col-md-2 col-sm-2 col-xs-6',
+            prefix: '{{ clientaddress.prefix }}'
+        });
+    });
+
+    $(function() {
+        $('.clientcontact_row').formset({
+            addText: 'Dodaj nowy kontakt',
+            deleteText: 'Usuń kontakt',
+            addCssClass: 'btn btn-primary centered col-md-2 col-sm-2 col-xs-6',
+            deleteCssClass: 'btn btn-danger centered col-md-2 col-sm-2 col-xs-6',
+            prefix: '{{ clientcontact.prefix }}'
+        });
+    });
+
+    $( function() {
+        $( "#tabs" ).tabs({
+          collapsible: true
+        });
+      } );
+</script>
+<script>(function () {
+	$(document).ready(function() {
+		$("#id_birthday").datetimepicker({    
+            timepicker:false,
+            format:'Y-m-d',
+        });
+	});
+})(jQuery);
+</script>
+{% endblock javascripts %}

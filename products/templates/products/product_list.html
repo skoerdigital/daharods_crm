@@ -1,0 +1,159 @@
+{% extends "base_site.html" %} {% load myfilters %} {% block title %} Produkty {% endblock title %} {% block stylesheets %}
+{{ block.super }} {% endblock stylesheets %} {% block content %}
+<div class="right_col" role="main">
+  <div class="products">
+    <div class="page-title">
+      <div class="title_left">
+        <h3>Produkty</h3>
+      </div>
+
+      <div class="title_right">
+        <div class="col-md-5 col-sm-5 col-xs-12 form-group pull-right top_search">
+          <div class="input-group">
+            <input type="text" id="quicksearch" class="form-control" placeholder="Szukaj..">
+            <span class="input-group-btn">
+              <button class="btn btn-default" type="button">OK</button>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if user.is_authenticated and user.employee.role == 'A' %}
+    <div class="row">
+      <div class="col-md-12" style="padding: 0 15px;">
+        <a href="{% url 'products:create' %}" class="btn btn-primary" role="button">
+          <i class="fa fa-plus-square-o" aria-hidden="true"></i> Dodaj produkt</a>
+        <br>
+        <br>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="option-combo products" style="padding: 5px">
+      <ul class="filter-buttons option-set clearfix" id="filters">
+        <li data-filter="*" class="selected">Wszystkie</li>
+        {% for product_type in product_types %}
+        <li data-filter=".{{product_type}}">
+          {{product_type}}
+        </li>
+        {% empty %}
+        <p>Nie znaleziono produktów</p>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="divider"></div>
+    <br>
+
+    <div class="clearfix"></div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="">
+          <div class="x_content">
+            <div class="row" id="products-list">
+              {% for product in object_list %}
+              <div class="product {{product.product_type.name}} col-md-3 col-xs-6 widget widget_tally_box">
+                <div class="x_panel ui-ribbon-container fixed_height_340">
+                  <div class="x_title">
+                    <h2>{{product.product_type.name}}</h2>
+                    <div class="clearfix"></div>
+                  </div>
+                  <div class="x_content">
+
+                    <div style="text-align: center; margin-bottom: 17px">
+                      <h1 style="font-size: 5em">{{product.parameter.value|as_percentage}}</h1>
+                    </div>
+
+                    <h3 class="name_title">{{product.name}}</h3>
+                    <p>Czas trwania:
+                      <strong>{{product.parameter.duration}} lat</strong>
+                      <br> Kod produktu:
+                      <strong>{{product.code}} </strong>
+                      <br> Data dodania:
+                      <strong>{{product.timestamp}} </strong>
+                      <br> Oprocentowanie dla klienta:
+                      <strong>{{product.parameter.client_fee|as_percentage}} </strong>
+                    </p>
+                    <div class="divider"></div>
+
+                    <p>{{product.product_type.description}}</p>
+                    {% if user.is_authenticated and user.employee.role == 'A' %}
+                    <p>
+                      <a href="{% url 'products:edit' product.code %}" class="btn btn-warning" role="button">
+                        <i class="fa fa-edit m-right-xs" aria-hidden="true"></i> Edytuj</a>
+                    </p>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+              {% empty %}
+              <p>Nie znaleziono produktów</p>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %} {% block javascripts %} {{ block.super }}
+<script src="https://unpkg.com/isotope-layout@3.0.5/dist/isotope.pkgd.min.js"></script>
+<script>          
+  $(function () {
+
+    var qsRegex;
+    var buttonFilter;
+
+    // init Isotope
+    var $grid = $('#products-list').isotope({
+      itemSelector: '.product',
+      filter: function () {
+        var $this = $(this);
+        var searchResult = qsRegex ? $this.text().match(qsRegex) : true;
+        var buttonResult = buttonFilter ? $this.is(buttonFilter) : true;
+        console.log(buttonFilter);
+        return searchResult && buttonResult;
+      }
+    });
+
+    $('#filters').on('click', 'li', function () {
+      buttonFilter = $(this).attr('data-filter');
+      $grid.isotope();
+    });
+
+    // use value of search field to filter
+    var $quicksearch = $('#quicksearch').keyup(debounce(function () {
+      qsRegex = new RegExp($quicksearch.val(), 'gi');
+      $grid.isotope();
+    }));
+
+
+    // change is-checked class on buttons
+    $('.filter-buttons').each(function (i, buttonGroup) {
+      var $buttonGroup = $(buttonGroup);
+      $buttonGroup.on('click', 'li', function () {
+        $buttonGroup.find('.selected').removeClass('selected');
+        $(this).addClass('selected');
+      });
+    });
+
+
+    // debounce so filtering doesn't happen every millisecond
+    function debounce(fn, threshold) {
+      var timeout;
+      return function debounced() {
+        if (timeout) {
+          clearTimeout(timeout);
+        }
+        function delayed() {
+          fn();
+          timeout = null;
+        }
+        setTimeout(delayed, threshold || 100);
+      };
+    }
+
+  });
+</script> {% endblock javascripts %}

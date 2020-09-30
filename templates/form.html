@@ -1,0 +1,16 @@
+
+{% extends "base.html" %}
+
+{% block head_title %} {{title}} | {{ block.super}}{% endblock head_title %}
+
+{% block content %}
+<h1>{{title}} </h1>
+
+{% if form.instance %}
+<h3>{{ form.instance.name }}</h3>
+{{ person_form.client_form }}
+{% endif %}
+
+{% include 'snippets/form-snippet.html' %}
+
+{% endblock %} 

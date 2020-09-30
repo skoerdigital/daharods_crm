@@ -1,0 +1,112 @@
+{% extends "base_site.html" %}
+
+{% block title %} Project Details {% endblock title %}
+
+{% block sidebar_class %}menu_fixed{% endblock sidebar_class %}
+
+{% block stylesheets %}
+  {{ block.super }}
+{% endblock stylesheets %}
+
+{% block content %}
+  <div class="right_col" role="main">
+    <div class="">
+      <div class="page-title">
+        <div class="title_left">
+          <h3>{{title}} {{agreement.nr}}</h3>
+        </div>
+      </div>
+
+      <div class="clearfix"></div>
+
+      <div class="row">
+        <div class="col-md-12">
+          <div class="x_panel">
+            <div class="x_title">
+              <h2><a href="{% url 'clients:detail' agreement.client_id.slug %}">{{agreement.client_id.name}} {{agreement.client_id.surname}}</a></h2>
+              <div class="clearfix"></div>
+            </div>
+
+            <div class="x_content">
+
+                <div class="col-md-12 col-sm-12 col-xs-12">
+
+                    <ul class="stats-overview">
+                    <li>
+                        <span class="name"> Kwota umowy </span>
+                        <span class="value text-success"> {{agreement.amount}} zł</span>
+                    </li>
+                    <li>
+                        <span class="name"> Ważna od </span>
+                        <span class="value text-success"> {{agreement.valid_since}} </span>
+                    </li>
+                    <li>
+                        <span class="name"> Ważna do </span>
+                        <span class="value text-success"> {{agreement.valid_to}} </span>
+                    </li>
+                    </ul>
+                    <br />
+                </div>
+
+
+            </div>
+
+              <!-- start project-detail sidebar -->
+              <div class="col-md-12 col-sm-12 col-xs-12">
+
+                <section class="panel">
+
+                  <div class="panel-body">
+                    <h3 class="green"><i class="fa fa-file-text"></i> {{declaration.product_id.name}}</h3>
+
+                    <p>{{declaration.product_id.product_type.description}}</p>
+                    <br />
+
+                    <div class="project_detail">
+                      <p class="title">Klient</p>
+                      <p><a href="{% url 'clients:detail' agreement.client_id.slug %}"><small style="color:#fff; padding:3px 6px; background: #73879C">{{agreement.client_id.client_id}}</small></a></p>
+
+                      <p class="title">Utworzona przez</p>
+                      <p><small style="color:#fff; padding:3px 6px; background: #73879C">{{agreement.owner.employee.name }} {{agreement.owner.employee.surname}}</small></p>
+
+                      <p class="title">Sprzedawca</p>
+                      <p><small style="color:#fff; padding:3px 6px; background: #73879C">{{agreement.buyer.employee.name }} {{agreement.buyer.employee.surname}}</small></p>
+
+                      <p class="title">Inne umowy dla {{agreement.client_id.client_id}}</p>
+
+                      <p>
+                        {% for agr in agreement.client_id.agreement_set.all %}
+                            <a href="{% url 'agreements:detail' agr.nr %}"><small style="color:#fff; padding:3px 6px; background: #5cb85c">{{agr.nr}}</small></a>
+                        {%endfor%}
+
+                      </p>
+                    </div>
+
+                    <br />
+
+                    <div class="mtop20">
+                        <a class="btn btn-success" href="{% url 'agreements:edit' agreement.nr %}"><i class="fa fa-edit m-right-xs"></i> Edytuj</a>
+                        <a class="btn btn-default" href="{% url 'agreements:list' %}"><i class="fa fa-list m-right-xs"></i> Lista umów</a>
+                    </div>
+
+                    
+                  </div>
+
+                </section>
+
+              </div>
+              <!-- end project-detail sidebar -->
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock content %}
+
+{% block javascripts %}
+  {{ block.super }}
+  <!-- ECharts -->
+  <script src="/static/vendors/echarts/dist/echarts.min.js"></script>
+{% endblock javascripts %}

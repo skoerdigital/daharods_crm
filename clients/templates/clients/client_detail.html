@@ -1,0 +1,168 @@
+
+{% extends "base_site.html" %}
+{% load myfilters %}
+
+{% block title %} Profile {% endblock title %}
+
+{% block stylesheets %}
+  {{ block.super }}
+{% endblock stylesheets %}
+
+{% block content %}
+  <div class="right_col" role="main">
+    <div class="">
+      <div class="page-title">
+      </div>
+
+      <div class="clearfix"></div>
+
+      <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+          <div class="x_panel">
+            <div class="x_content">
+              <div class="col-md-3 col-sm-3 col-xs-12 profile_left">
+
+                <h1>{{object.name}} {{object.second_name}} {{object.surname}} </h1>
+                
+                <small style="color:#fff; padding:3px 6px; background: #73879C">{{object.client_id}}</small>
+                <small style="color:#fff; padding:3px 6px; {% if object.client_state == 'A'%} background: #5cb85c {%  else %} background: #73879C {% endif %}">{{object.client_state|state}}</small> 
+                <br><br>
+
+                <ul class="list-unstyled user_data">
+                  <li><i class="fa fa-map-marker user-profile-icon"></i> | {{object.city}}
+                  </li>
+
+                  <li>
+                    <i class="fa fa-birthday-cake user-profile-icon"></i> | {{object.birthday}}
+                  </li>
+
+                  <li class="m-top-xs">
+                    <b>PESEL</b> | {{object.pesel}}
+                  </li>
+                </ul>
+                <br>
+                <h4>Dokument tożsamości</h4>
+                <ul class="list-unstyled user_data">
+                  <li><i class="fa fa-id-card user-profile-icon"></i> | {{object.doc_type|doc_type}}
+                  </li>
+
+                  <li class="m-top-xs">
+                    <b>NUMER</b> | {{object.doc_nr}}
+                  </li>
+                  
+                </ul>
+                <br>
+                <h4>Adresy</h4>
+                <ul class="list-unstyled user_data">
+                  {% for address in object.clientaddress_set.all %}
+                    <li><i class="fa fa-home" aria-hidden="true"></i> | <b>{{address.contact_type|address_type}}</b>
+                      <p>
+                        {{address.street}} {{address.house_nr}}/{{address.apartment_nr}} <br>
+                        {{address.postal_code}} {{address.post}}, {{address.country}}         
+                      </p>
+                    </li>
+                    {% empty %}
+                      Brak wyników
+                  {% endfor %}
+                </ul>
+                <br>
+                <h4>Dane kontaktowe</h4>
+                <ul class="list-unstyled user_data">
+                  {% for contact in object.clientcontactdata_set.all %}
+                    <li><i class="fa fa-home" aria-hidden="true"></i> | <b>{{contact.contact_type|contact_type}}</b>
+                      <p>
+                       <a href="{% if contact.contact_type == 'E' %}mailto:{{contact.value}}{% elif contact.contact_type == 'T' %}tel:{{contact.value}}{% endif %}">{{contact.value}}</a>
+                      </p>
+                    </li>
+                    {% empty %}
+                      Brak wyników
+                  {% endfor %}
+                </ul>
+                <br>
+
+                <p>Uwtorzony:
+                    <small style="color:#73879C; padding:3px 6px; background: none; border: 1px solid #73879C; margin: 5px auto">{{object.timestamp|timesince}} temu</small></p>
+                
+                <p>Ostatnio edytowany:
+                  <small style="color:#73879C; padding:3px 6px; background: none; border: 1px solid #73879C;  ">{{object.updated|timesince}} temu</small>
+                </p>
+                
+                <p>Uwtorzony przez:
+                    <small style="color:#73879C; padding:3px 6px; background: none; border: 1px solid #73879C; margin: 5px auto">{{object.owner.employee}}</small></p>
+                <br>
+
+                <a class="btn btn-success" href="{% url 'clients:edit' object.slug %}"><i class="fa fa-edit m-right-xs"></i> Edytuj</a>
+                <a class="btn btn-default" href="{% url 'clients:list' %}"><i class="fa fa-list m-right-xs"></i> Lista klientów</a>
+                <br />
+
+              </div>
+              
+              <div class="col-md-6 col-sm-6 col-xs-12">
+                <div class="row tile_count">
+                  <div class="tile_stats_count">
+                    <span class="count_top"><i class="fa fa-file-text-o"></i> Umowy</span>
+                    <div class="count">{{object.transaction_set.all|length}}</div>
+                  </div>
+                  <div class="tile_stats_count">
+                    <span class="count_top"><i class="fa fa-money"></i> Łącznie wpłacono</span>
+                    <div class="count">{{total_amount|is_none}} </div>
+                  </div>
+                  <div class="tile_stats_count">
+                    <span class="count_top"><i class="fa fa-money"></i> Łącznie prowizje</span>
+                    <div class="count">{{total_fee|is_none}}</div>
+                  </div>
+                  <div class="tile_stats_count">
+                    <span class="count_top"><i class="fa fa-money"></i> Najwyższa wpłata</span>
+                    <div class="count">{{max_amount|is_none}}</div>
+                  </div>
+                  {% for notif in object.notification_set.all %}
+                    {{notif}}
+                  {% endfor %}
+
+  
+                </div>
+                <div class="row agreements">
+                  <h4>Aktywne umowy</h4>
+                  <div class="ln_solid"></div>
+                  <ul class="list-unstyled user_data">
+
+                    {% for transaction in object.transaction_set.all %}
+                      <li>
+                        <p>
+                            <span style="color:#fff; padding:3px 6px; background: #337ab7; margin: 5px auto">{{transaction.product_id}}</span></p><br>
+                        <div class="progress progress_sm">
+                          <div class="progress-bar bg-green" role="progressbar" data-transitiongoal="{{transaction.time_left}}"></div><span> Pozostało: {{transaction.valid_to|timeuntil}}</span>
+                        </div>
+                        <p> Kwota:
+                            <span style="color:#73879C; padding:3px 6px; background: none; border: 1px solid #73879C; margin: 5px auto">{{transaction.amount}} zł</span></p>
+
+                        <p> Prowizja: 
+                            <span style="color:#73879C; padding:3px 6px; background: none; border: 1px solid #73879C; margin: 5px auto">{{transaction.fee}} zł</span></p>
+
+                        <p> Utworzono: 
+                            <span style="color:#73879C; padding:3px 6px; background: none; border: 1px solid #73879C; margin: 5px auto">{{transaction.timestamp}}</span></p>
+
+                            {% if user.is_authenticated %}
+                            <p> Pracownik: 
+                                <span style="color:#73879C; padding:3px 6px; background: none; border: 1px solid #73879C; margin: 5px auto">{{transaction.owner}}</span></p>
+                            {% endif %}
+                      </li>
+                      {% empty %}
+                      Brak wyników
+                    {% endfor %}
+                    
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock content %}
+
+{% block javascripts %}
+  {{ block.super }}
+
+{% endblock javascripts %} 
